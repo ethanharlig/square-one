@@ -2,9 +2,11 @@ using UnityEngine;
 
 public class TileController : MonoBehaviour
 {
-    public bool isPainted {
+    public bool IsPainted
+    {
         get; private set;
     }
+
     public GameObject GetTile()
     {
         return gameObject;
@@ -19,6 +21,6 @@ public class TileController : MonoBehaviour
     {
         Debug.LogFormat("Painting this tile to color: {0}", color);
         gameObject.GetComponent<MeshRenderer>().material.color = color;
-        isPainted = true;
+        IsPainted = true;
     }
 }

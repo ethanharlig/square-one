@@ -3,9 +3,6 @@ using UnityEngine;
 
 public class LevelOneManager : LevelManager
 {
-    public GameObject successElements;
-    public GameObject failedElements;
-
     private List<GameState> gameStateOrder;
     private GameState currentGameState;
 
@@ -64,13 +61,13 @@ public class LevelOneManager : LevelManager
     // required naming for events
     void OnEnable()
     {
-        PlayerController.OnMoveAction += HandlePlayerMove;
+        PlayerController.OnMoveStart += HandlePlayerMove;
     }
 
     // required naming for events
     void OnDisable()
     {
-        PlayerController.OnMoveAction -= HandlePlayerMove;
+        PlayerController.OnMoveStart -= HandlePlayerMove;
     }
 
     void HandlePlayerMove()

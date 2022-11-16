@@ -4,8 +4,11 @@ using UnityEngine.InputSystem;
 
 public class PlayerController : Singleton<PlayerController>
 {
-    public delegate void MoveAction();
-    public static event MoveAction OnMoveAction;
+    public delegate void MoveStartAction();
+    public static event MoveStartAction OnMoveStart;
+
+    public delegate void MoveFinishAction();
+    public static event MoveFinishAction OnMoveFinish;
 
     private Rigidbody rb;
     private float movementX, movementY;
@@ -65,7 +68,7 @@ public class PlayerController : Singleton<PlayerController>
             // lock
             _isMoving = true;
             // call delegate
-            OnMoveAction?.Invoke();
+            OnMoveStart?.Invoke();
 
             if (movementX == -1) Assemble(Vector3.left);
             else if (movementX == 1) Assemble(Vector3.right);
@@ -104,6 +107,10 @@ public class PlayerController : Singleton<PlayerController>
 
                 // player should have their move count increased once they've finished moving
                 if (shouldCountMoves) moveCount++;
+
+                // call delegate
+                OnMoveFinish?.Invoke();
+
                 _isMoving = false;
                 yield return null;
             }

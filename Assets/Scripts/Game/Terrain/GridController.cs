@@ -39,8 +39,15 @@ public class GridController : Singleton<GridController>
 
     }
 
+    /**
+    * Get Tile at Vector2Int position. Returns null if position is not within grid.
+    */
     public TileController TileAtLocation(Vector2Int position)
     {
+        if (!IsWithinGrid(position))
+        {
+            return null;
+        }
         return gridRows[position.x][position.y];
     }
 
@@ -66,7 +73,8 @@ public class GridController : Singleton<GridController>
 
     public void PaintTileAtLocation(int x, int z, Color color)
     {
-        gridRows[x][z].Paint(color);
+        if (IsWithinGrid(x, z))
+            gridRows[x][z].Paint(color);
     }
 
     public void PaintTilesAdjacentToLocation(Vector2 position, Color color)
@@ -82,9 +90,13 @@ public class GridController : Singleton<GridController>
         PaintTileAtLocation(x, z + 1, color);
     }
 
-    public bool IsWithinGrid(Vector2 position)
+    public bool IsWithinGrid(Vector2Int position)
     {
-        return position.x >= 0 && position.x < gridRows.Count && position.y >= 0 && position.y < gridRows.Count;
+        return IsWithinGrid(position.x, position.y);
     }
 
+    public bool IsWithinGrid(int x, int z)
+    {
+        return x >= 0 && x < gridRows.Count && z >= 0 && z < gridRows.Count;
+    }
 }
