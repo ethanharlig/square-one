@@ -2,17 +2,22 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BaseState : MonoBehaviour
+public class BaseState
 {
-    // Start is called before the first frame update
-    void Start()
+
+    public string name;
+
+    public BaseState(string name)
     {
-        
+        this.name = name;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    // runs when entering the state
+    public virtual void Enter() { }
+
+    // runs on Update()
+    public virtual void UpdateLogic() { }
+
+    // runs when exiting the state
+    public virtual void Exit() { }
 }
