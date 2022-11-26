@@ -11,7 +11,7 @@ public class PlayerController : Singleton<PlayerController>
     public static event MoveStartAction OnMoveStart;
 
     // currentPosition here is after player moves
-    public delegate void MoveFinishAction(Vector2Int positionAfterMove);
+    public delegate void MoveFinishAction(Vector2Int positionAfterMove, bool moveShouldCount);
     public static event MoveFinishAction OnMoveFinish;
 
     private Vector3 originalPosition;
@@ -19,8 +19,7 @@ public class PlayerController : Singleton<PlayerController>
     private bool shouldCountMoves = true;
     private int moveCount;
     private GameObject playerInstanceGameObject;
-    // TODO probably shouldn't be public hmm
-    public Cube Cube { get; set; }
+    private Cube Cube { get; set; }
 
     private Vector2Int currentPosition;
     private bool _isMoving;
@@ -34,15 +33,39 @@ public class PlayerController : Singleton<PlayerController>
         playerInstanceGameObject = gameObject;
 
         // defines roll speed and allows to roll
-        Cube = new(this, 4.4f, () => BeforeRollActions(), moveCompleted => AfterRollActions(moveCompleted));
+        Cube = new(this, 4.4f, () => BeforeRollActions(), (moveCompleted, moveShouldCount) => AfterRollActions(moveCompleted, moveShouldCount));
         currentPosition = GetRawCurrentPosition();
         CameraController.OnCameraRotate += TrackCameraLocation;
     }
 
+#pragma warning disable IDE0051
     private void OnDisable()
     {
         CameraController.OnCameraRotate -= TrackCameraLocation;
     }
+
+    // OnMove comes from the InputActions action defined Move
+    void OnMove(InputValue movementValue)
+    {
+        if (_isMoving) return;
+
+        Vector2 movementVector = movementValue.Get<Vector2>();
+
+        if (Mathf.Abs(movementVector.x) != 1.0f && Mathf.Abs(movementVector.y) != 1.0f) return;
+
+        int movementX = Mathf.RoundToInt(movementVector.x);
+        int movementY = Mathf.RoundToInt(movementVector.y);
+
+        Vector3Int relativeMoveDirection = GetRelativeMoveDirectionWithCameraOffset(movementX, movementY);
+        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, true);
+
+        // TODO player can float by constant input, how to disallow? prev solution below
+
+        // downwards force disallows wall climbing, constant was chosen because it plays well
+        // this solution isn't great but seems good enough, feel free to update it to be cleaner
+        // rb.AddForce(Vector3.down * 25, ForceMode.Force);
+    }
+#pragma warning restore IDE0051
 
     private void TrackCameraLocation(Vector2Int direction)
     {
@@ -77,7 +100,7 @@ public class PlayerController : Singleton<PlayerController>
         _isMoving = true;
     }
 
-    void AfterRollActions(bool moveCompleted)
+    void AfterRollActions(bool moveCompleted, bool shouldMoveBeCounted)
     {
 
         _isMoving = false;
@@ -86,9 +109,9 @@ public class PlayerController : Singleton<PlayerController>
 
         if (moveCompleted)
         {
-            if (shouldCountMoves) moveCount++;
+            if (shouldMoveBeCounted) moveCount++;
         }
-        OnMoveFinish?.Invoke(currentPosition);
+        OnMoveFinish?.Invoke(currentPosition, shouldMoveBeCounted);
     }
 
     /**
@@ -139,28 +162,6 @@ public class PlayerController : Singleton<PlayerController>
         }
     }
 
-    // OnMove comes from the InputActions action defined Move
-    void OnMove(InputValue movementValue)
-    {
-        if (_isMoving) return;
-
-        Vector2 movementVector = movementValue.Get<Vector2>();
-
-        if (Mathf.Abs(movementVector.x) != 1.0f && Mathf.Abs(movementVector.y) != 1.0f) return;
-
-        int movementX = Mathf.RoundToInt(movementVector.x);
-        int movementY = Mathf.RoundToInt(movementVector.y);
-
-        Vector3Int relativeMoveDirection = GetRelativeMoveDirectionWithCameraOffset(movementX, movementY);
-        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL);
-
-        // TODO player can float by constant input, how to disallow? prev solution below
-
-        // downwards force disallows wall climbing, constant was chosen because it plays well
-        // this solution isn't great but seems good enough, feel free to update it to be cleaner
-        // rb.AddForce(Vector3.down * 25, ForceMode.Force);
-    }
-
     public bool ShouldCountMoves()
     {
         return shouldCountMoves;
@@ -171,7 +172,6 @@ public class PlayerController : Singleton<PlayerController>
         shouldCountMoves = false;
     }
 
-    // TODO need to update GetCurrentPosition when the player gets moved by some other obstacle
     /**
         Get player's location taking into account roll animation. This position only updates once a roll animation completes.
     */
@@ -207,16 +207,14 @@ public class PlayerController : Singleton<PlayerController>
         };
     }
 
-    // TODO need to do something like this to stop player movement and wait for it to finish
-    // TODO this moves through stuff lol...
     public void ForceMoveInDirection(Vector3 direction)
     {
         StopCountingMoves();
         OnMoveFinish += StartCountingMovesAndDeregisterOnMoveFinish;
-        Cube.MoveInDirectionIfNotMoving(direction, Cube.MoveType.SLIDE);
+        Cube.MoveInDirectionIfNotMoving(direction, Cube.MoveType.SLIDE, false);
     }
 
-    private void StartCountingMovesAndDeregisterOnMoveFinish(Vector2Int pos)
+    private void StartCountingMovesAndDeregisterOnMoveFinish(Vector2Int pos, bool _)
     {
         StartCountingMoves();
         OnMoveFinish -= StartCountingMovesAndDeregisterOnMoveFinish;
@@ -236,5 +234,27 @@ public class PlayerController : Singleton<PlayerController>
     {
         _isMoving = false;
         Cube.StartMoving();
+    }
+
+    public float GetRollSpeed()
+    {
+        return Cube.GetRollSpeed();
+    }
+
+    public static bool IsColliderPlayer(Collider other)
+    {
+        if (!other.gameObject.CompareTag("Player"))
+        {
+            // Debug.LogFormat("Obstacle collided with non-player entity: {0}", other);
+            return false;
+        }
+
+        PlayerController playerController = other.GetComponent<PlayerController>();
+        if (playerController == null)
+        {
+            Debug.LogAssertion("Something tagged `Player` with no PlayerController collided with this obstacle!");
+            return false;
+        }
+        return true;
     }
 }

@@ -1,11 +1,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// moving obstacles in two dimensions
-public class LevelSixManager : LevelManager
+// simple chase level that introduces player to the concept 
+public class ChaseLevel1 : LevelManager
 {
     private List<GameState> gameStateOrder;
     private GameState currentGameState;
+
+    private List<MovingObstacle> obstacles;
 
     enum GameState
     {
@@ -20,6 +22,7 @@ public class LevelSixManager : LevelManager
         FAILED,
     };
 
+#pragma warning disable IDE0051
     void Start()
     {
         gridSizeX = gridSizeY = 11;
@@ -37,16 +40,17 @@ public class LevelSixManager : LevelManager
             GameState.SUCCESS
         };
 
-        SetupLevel();
+        SetupLevel(gridSizeX / 2 + 4, gridSizeY / 2);
 
-        ObstacleController obstacle = gridController.AddObstacleAtPosition(2, 2);
-        obstacle.StartPatrolling(new Vector2Int(8, 0));
+        obstacles = new List<MovingObstacle>();
 
-        ObstacleController obstacle2 = gridController.AddObstacleAtPosition(5, 7);
-        obstacle2.StartPatrolling(new Vector2Int(8, 9));
+        ObstacleController stationaryObstacle = gridController.AddStationaryObstacleAtPosition(4, 4);
 
-        ObstacleController obstacle3 = gridController.AddObstacleAtPosition(1, 10);
-        obstacle3.StartPatrolling(new Vector2Int(0, 1));
+        MovingObstacle obstacle = gridController.AddMovingObstacleAtPosition(2, 1);
+        obstacle.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
+        gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
+
+        obstacles.Add(obstacle);
 
         currentGameState = GameState.START;
     }
@@ -59,12 +63,13 @@ public class LevelSixManager : LevelManager
             ManageGameState();
         }
     }
+#pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveStart(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
     {
         if (levelActive)
         {
-            turnsLeft--;
+            turnsLeft = turnLimit - playerController.GetMoveCount();
         }
     }
 
@@ -73,15 +78,20 @@ public class LevelSixManager : LevelManager
         Vector2Int playerPos = playerController.GetCurrentPosition();
 
         // allow devMode to not fall out of map
-        if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
+        if (!gridController.IsWithinGrid(playerPos))
         {
             Debug.Log("Player has exited map.");
             currentGameState = GameState.FAILED;
         }
-        if (playerController.GetMoveCount() >= turnLimit)
+
+        // white tile color disables all moving obstacles
+        if (gridController.TileColorAtLocation(playerPos) == Color.white)
         {
-            Debug.Log("Player exceeded move count");
-            currentGameState = GameState.FAILED;
+            Debug.Log("Stopping obstacle movement!");
+            foreach (MovingObstacle obstacle in obstacles)
+            {
+                obstacle.StopMovement();
+            }
         }
 
         // game state handler
@@ -123,6 +133,9 @@ public class LevelSixManager : LevelManager
                 if (gridController.TileColorAtLocation(playerPos) == Color.blue)
                 {
                     TransitionState();
+                    // you must manage game state here before falling through, otherwise you could be transitioning
+                    // into a success game state when you're at zero turns!
+                    ManageGameState();
                 }
                 break;
             case GameState.SUCCESS:
@@ -136,6 +149,12 @@ public class LevelSixManager : LevelManager
             default:
                 Debug.LogErrorFormat("Encountered unexpected game state: {0}", currentGameState);
                 break;
+        }
+
+        if (currentGameState != GameState.SUCCESS && turnsLeft <= 0)
+        {
+            Debug.Log("Player exceeded move count");
+            currentGameState = GameState.FAILED;
         }
 
         void TransitionState()

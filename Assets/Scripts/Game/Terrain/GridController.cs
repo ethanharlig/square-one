@@ -1,35 +1,39 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class GridController : Singleton<GridController>
 {
+    // TODO will change to BaseTile and use a bare TileController
+#pragma warning disable IDE0044
     [SerializeField] private GameObject paintTilePrefab;
     [SerializeField] private GameObject iceTilePrefab;
     [SerializeField] private GameObject obstaclePrefab;
+    [SerializeField] private GameObject waypointPrefab;
+#pragma warning disable IDE0044
 
     private List<List<TileController>> gridRows;
-
     private Color startingColor;
+    private GameObject _obstacleGameObject;
+    private HashSet<Vector2Int> stationaryObstaclePositions = new();
 
-    // TODO need a way to specify a default prefab to use (like paintTilePrefab) and then
-    // a list of other prefabs and a list of their locations. Like "use paintTilePrefab everywhere
-    // except put IceTiles where I specify in this list"
-    public void SetupGrid(int width, int length)
+    public void SetupGrid(int xSize, int ySize)
     {
         List<List<TileController>> rows = new();
 
-        for (int row = 0; row < width; row++)
+        for (int x = 0; x < xSize; x++)
         {
             List<TileController> thisRow = new();
-            GameObject rowObj = new(string.Format("row{0}", row));
-            for (int col = 0; col < length; col++)
+            GameObject xRowObj = new(string.Format("X{0}", x));
+            for (int y = 0; y < ySize; y++)
             {
                 GameObject tile;
 
                 tile = Instantiate(paintTilePrefab);
-                tile.transform.localPosition = new Vector3(row, 0, col);
-                tile.name = string.Format("col{0} - Paint", col);
-                tile.transform.parent = rowObj.transform;
+                tile.transform.localPosition = new Vector3(x, 0, y);
+                tile.name = string.Format("Y{0} - Paint", y);
+                tile.transform.parent = xRowObj.transform;
 
                 thisRow.Add(tile.GetComponent<TileController>());
 
@@ -39,43 +43,98 @@ public class GridController : Singleton<GridController>
                 }
 
             }
-            rowObj.transform.parent = transform;
+            xRowObj.transform.parent = transform;
             rows.Add(thisRow);
         }
         gridRows = rows;
     }
 
-    public void SpawnIceTile(int row, int col)
+    public IceTile SpawnIceTile(int x, int y, IceTile.SteppedOnAction steppedOnAction)
     {
-        if (IsWithinGrid(row, col))
+        if (IsWithinGrid(x, y))
         {
-            TileAtLocation(row, col).GetTile().SetActive(false);
-            Transform parent = transform.GetChild(row).transform;
+            TileAtLocation(x, y).GetTile().SetActive(false);
+            Transform parent = transform.GetChild(x).transform;
 
             GameObject tile = Instantiate(iceTilePrefab);
-            tile.transform.localPosition = new Vector3(row, 0, col);
-            tile.name = string.Format("col{0} - Ice", col);
+            tile.transform.localPosition = new Vector3(x, 0, y);
+            tile.name = string.Format("y{0} - Ice", y);
             tile.transform.parent = parent;
 
-            gridRows[row][col] = tile.GetComponent<TileController>();
+            IceTile iceTile = tile.GetComponent<IceTile>();
+            iceTile.WhenSteppedOn += steppedOnAction;
+
+            gridRows[x][y] = iceTile;
+            return iceTile;
         }
+
+        return null;
     }
 
-    private GameObject _obstacleGameObject;
+    public List<IceTile> SpawnIceTilesAroundPosition(int x, int y, IceTile.SteppedOnAction steppedOnAction)
+    {
+        List<IceTile> iceTilesCreated = new();
+        for (int xAttempt = x - 1; xAttempt <= x + 1; xAttempt++)
+        {
+            for (int yAttempt = y - 1; yAttempt <= y + 1; yAttempt++)
+            {
+                // don't spawn ice tile here
+                if (xAttempt == x && yAttempt == y) continue;
 
-    public ObstacleController AddObstacleAtPosition(int row, int col)
+                IceTile iceTile = SpawnIceTile(xAttempt, yAttempt, steppedOnAction);
+                if (iceTile == null) continue;
+
+                iceTilesCreated.Add(iceTile);
+            }
+        }
+        return iceTilesCreated;
+    }
+
+    public ObstacleController AddStationaryObstacleAtPosition(int x, int y)
     {
         if (_obstacleGameObject == null)
         {
             _obstacleGameObject = new("Obstacles");
         }
         // obstacles spawn on top of floor
-        ObstacleController obstacle = Instantiate(obstaclePrefab, new Vector3Int(row, 1, col), Quaternion.identity).GetComponent<ObstacleController>();
-        obstacle.SetName($"row{row}col{col}");
+        GameObject obj = Instantiate(obstaclePrefab, new Vector3Int(x, 1, y), Quaternion.identity);
+        ObstacleController obstacle = obj.AddComponent<ObstacleController>();
+        obstacle.SetName($"static - row{x}col{y}");
 
         obstacle.transform.parent = _obstacleGameObject.transform;
 
+        stationaryObstaclePositions.Add(new Vector2Int(x, y));
         return obstacle;
+    }
+
+    // TODO should be split into static and moving obstacles
+    public MovingObstacle AddMovingObstacleAtPosition(int x, int y)
+    {
+        if (_obstacleGameObject == null)
+        {
+            _obstacleGameObject = new("Obstacles");
+        }
+
+        GameObject obj = Instantiate(obstaclePrefab, new Vector3Int(x, 1, y), Quaternion.identity);
+        MovingObstacle obstacle = obj.AddComponent<MovingObstacle>();
+        obstacle.SetName($"moving - row{x}col{y}");
+
+        obstacle.transform.parent = _obstacleGameObject.transform;
+
+        // moving obstacles are yellow
+        obj.GetComponent<MeshRenderer>().material.color = Color.yellow;
+
+        return obstacle;
+    }
+
+    private HashSet<Vector2Int> GetCurrentStationaryObstacles()
+    {
+        return stationaryObstaclePositions;
+    }
+
+    public Func<HashSet<Vector2Int>> GetCurrentStationaryObstaclesAction()
+    {
+        return () => GetCurrentStationaryObstacles();
     }
 
     public TileController TileAtLocation(int x, int y)
@@ -95,11 +154,6 @@ public class GridController : Singleton<GridController>
         return gridRows[position.x][position.y];
     }
 
-    public void ResetTileColorAtLocation(Vector2Int position)
-    {
-        PaintTileAtLocation(position, startingColor);
-    }
-
     public Color? TileColorAtLocation(Vector2Int position)
     {
         if (!IsWithinGrid(position))
@@ -108,7 +162,6 @@ public class GridController : Singleton<GridController>
         }
         if (TileAtLocation(position) is not PaintTile)
         {
-            Debug.Log("Tile color at location returned a non-paint tile!");
             return null;
         }
 
@@ -120,18 +173,32 @@ public class GridController : Singleton<GridController>
         PaintTileAtLocation(position.x, position.y, color);
     }
 
-    public void PaintTileAtLocation(int x, int z, Color color)
+    public void PaintTileAtLocation(int x, int y, Color color)
     {
-        if (!IsWithinGrid(x, z))
+        if (!IsWithinGrid(x, y))
         {
             return;
         }
-        if (TileAtLocation(x, z) is not PaintTile)
+        if (TileAtLocation(x, y) is not PaintTile)
         {
             Debug.Log("Paint tile at location returned a non-paint tile!");
             return;
         }
-        ((PaintTile)gridRows[x][z]).Paint(color);
+        ((PaintTile)gridRows[x][y]).Paint(color);
+    }
+
+    public void SpawnWaypoint(Vector2Int position, WaypointController.OnTriggeredAction onTriggeredAction)
+    {
+        SpawnWaypoint(position.x, position.y, onTriggeredAction);
+    }
+
+    public void SpawnWaypoint(int x, int y, WaypointController.OnTriggeredAction onTriggeredAction)
+    {
+        GameObject waypoint = Instantiate(waypointPrefab);
+        waypoint.transform.localPosition = new Vector3(x, 1.0f, y);
+        waypoint.name = string.Format("Waypoint [{0}, {1}]", x, y);
+        waypoint.GetComponent<WaypointController>().OnTriggered += onTriggeredAction;
+        // TODO animate this lil guy and make them spin or something
     }
 
     public void PaintTilesAdjacentToLocation(Vector2 position, Color color)
@@ -139,12 +206,12 @@ public class GridController : Singleton<GridController>
         PaintTilesAdjacentToLocation((int)position.x, (int)position.y, color);
     }
 
-    public void PaintTilesAdjacentToLocation(int x, int z, Color color)
+    public void PaintTilesAdjacentToLocation(int x, int y, Color color)
     {
-        PaintTileAtLocation(x - 1, z, color);
-        PaintTileAtLocation(x + 1, z, color);
-        PaintTileAtLocation(x, z - 1, color);
-        PaintTileAtLocation(x, z + 1, color);
+        PaintTileAtLocation(x - 1, y, color);
+        PaintTileAtLocation(x + 1, y, color);
+        PaintTileAtLocation(x, y - 1, color);
+        PaintTileAtLocation(x, y + 1, color);
     }
 
     public bool IsWithinGrid(Vector2Int position)
@@ -152,8 +219,8 @@ public class GridController : Singleton<GridController>
         return IsWithinGrid(position.x, position.y);
     }
 
-    public bool IsWithinGrid(int x, int z)
+    public bool IsWithinGrid(int x, int y)
     {
-        return x >= 0 && x < gridRows.Count && z >= 0 && z < gridRows.Count;
+        return x >= 0 && x < gridRows.Count && y >= 0 && y < gridRows.Count;
     }
 }

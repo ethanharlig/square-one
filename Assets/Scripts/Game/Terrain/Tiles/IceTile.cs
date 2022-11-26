@@ -1,6 +1,7 @@
 using UnityEngine;
 
-public class IceTile : TileController
+// TODO how to make this tile clearly marked as ice even when painted?
+public class IceTile : PaintTile
 {
     private Vector2Int _beforeMovePosition;
 
@@ -12,7 +13,7 @@ public class IceTile : TileController
         _beforeMovePosition = playerPosition;
     }
 
-    void OnPlayerMoveFinish(Vector2Int playerPosition)
+    void OnPlayerMoveFinish(Vector2Int playerPosition, bool _)
     {
         Vector3Int direction;
 
@@ -53,6 +54,7 @@ public class IceTile : TileController
         }
     }
 
+#pragma warning disable IDE0051
     void OnEnable()
     {
         PlayerController.OnMoveStart += OnPlayerMoveStart;
@@ -64,4 +66,5 @@ public class IceTile : TileController
         PlayerController.OnMoveStart -= OnPlayerMoveStart;
         PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
     }
+#pragma warning restore IDE0051
 }

@@ -10,23 +10,12 @@ public class CameraController : Singleton<CameraController>
     private Quaternion startRotation;
     private float progress = 0;
 
+#pragma warning disable IDE0051
     void Start()
     {
         // NEED to set this otherwise framerate is uncapped
         Application.targetFrameRate = 144;
     }
-
-    public void CenterCameraOnOffset(int x, int z)
-    {
-        Vector3 pos = transform.position;
-        transform.localPosition = new Vector3(pos.x + x, pos.y, pos.z + z);
-    }
-
-    // currentPosition here is before player moves
-    public delegate void CameraRotateAction(Vector2Int rotateDirection);
-    public static event CameraRotateAction OnCameraRotate;
-
-    private bool _isRotating = false;
 
     // OnRotate comes from the InputActions action defined Rotate
     void OnRotate(InputValue movementValue)
@@ -53,7 +42,7 @@ public class CameraController : Singleton<CameraController>
         }
         else
         {
-            Debug.LogError("Move direction of 0 provided in camera controller!");
+            Debug.LogWarning("Move direction of 0 provided in camera controller!");
             return;
         }
 
@@ -61,6 +50,19 @@ public class CameraController : Singleton<CameraController>
         OnCameraRotate?.Invoke(relativeMoveDirection);
         StartCoroutine(Rotate());
     }
+#pragma warning restore IDE0051
+
+    public void CenterCameraOnOffset(int x, int z)
+    {
+        Vector3 pos = transform.position;
+        transform.localPosition = new Vector3(pos.x + x, pos.y, pos.z + z);
+    }
+
+    // currentPosition here is before player moves
+    public delegate void CameraRotateAction(Vector2Int rotateDirection);
+    public static event CameraRotateAction OnCameraRotate;
+
+    private bool _isRotating = false;
 
     private IEnumerator Rotate()
     {

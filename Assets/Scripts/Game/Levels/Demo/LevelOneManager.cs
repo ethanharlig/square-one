@@ -20,6 +20,7 @@ public class LevelOneManager : LevelManager
         FAILED,
     };
 
+#pragma warning disable IDE0051
     /**
     Level one is a tile painting level. 
     When the player moves once, a square one unit away from them turns green.
@@ -56,12 +57,13 @@ public class LevelOneManager : LevelManager
             ManageGameState();
         }
     }
+#pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveStart(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
     {
         if (levelActive)
         {
-            turnsLeft--;
+            turnsLeft = turnLimit - playerController.GetMoveCount();
         }
     }
 
@@ -70,14 +72,9 @@ public class LevelOneManager : LevelManager
         Vector2Int playerPos = playerController.GetCurrentPosition();
 
         // allow devMode to not fall out of map
-        if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
+        if (!gridController.IsWithinGrid(playerPos))
         {
             Debug.Log("Player has exited map.");
-            currentGameState = GameState.FAILED;
-        }
-        if (playerController.GetMoveCount() >= turnLimit)
-        {
-            Debug.Log("Player exceeded move count");
             currentGameState = GameState.FAILED;
         }
 
@@ -120,6 +117,9 @@ public class LevelOneManager : LevelManager
                 if (gridController.TileColorAtLocation(playerPos) == Color.blue)
                 {
                     TransitionState();
+                    // you must manage game state here before falling through, otherwise you could be transitioning
+                    // into a success game state when you're at zero turns!
+                    ManageGameState();
                 }
                 break;
             case GameState.SUCCESS:
@@ -133,6 +133,12 @@ public class LevelOneManager : LevelManager
             default:
                 Debug.LogErrorFormat("Encountered unexpected game state: {0}", currentGameState);
                 break;
+        }
+
+        if (currentGameState != GameState.SUCCESS && turnsLeft <= 0)
+        {
+            Debug.Log("Player exceeded move count");
+            currentGameState = GameState.FAILED;
         }
 
         void TransitionState()

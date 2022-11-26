@@ -9,29 +9,23 @@ EditorBuildSettings:
     path: Assets/Scenes/Menu.unity
     guid: 98a16762d9446664183ded829c2a6d7a
   - enabled: 1
-    path: Assets/Scenes/Level 1.unity
-    guid: 99c9720ab356a0642a771bea13969a05
+    path: Assets/Scenes/Ice Level 1.unity
+    guid: 96860e84b0552764ab75b8ad44ac70e4
   - enabled: 1
-    path: Assets/Scenes/Level 2.unity
-    guid: 564eef7d9544a8a4a946265e73c2cc65
+    path: Assets/Scenes/Ice Level 2.unity
+    guid: 7fff3d7be1b1b9b4a88bc34af0d59f36
   - enabled: 1
-    path: Assets/Scenes/Level 3.unity
-    guid: 145f935e9c5a678478066822543b42d4
+    path: Assets/Scenes/Wall Level 1.unity
+    guid: 0778623da0a017d40911e58cff321dd8
   - enabled: 1
-    path: Assets/Scenes/Level 4.unity
-    guid: 32a5c3a8e71a7f543b49db120d706bfc
+    path: Assets/Scenes/Ice Level 3.unity
+    guid: 7a36020dc44bf9442a827666b56cda33
   - enabled: 1
-    path: Assets/Scenes/Level 5.unity
-    guid: 305a3b0636814f34694cb6fa21329bd6
-  - enabled: 1
-    path: Assets/Scenes/Level 6.unity
-    guid: 53585fce528297f488f8c8e24d9f70e0
-  - enabled: 1
-    path: Assets/Scenes/Level 7.unity
+    path: Assets/Scenes/Chase Level 1.unity
     guid: 5c9de40601343e042a5093a0fc742c97
   - enabled: 1
-    path: Assets/Scenes/Level 8.unity
-    guid: 8b818fc0f26735545a72128a9a2df896
+    path: Assets/Scenes/Chase Level 2.unity
+    guid: b4a3f3f3f09090c458d740b1d63dab36
   - enabled: 1
     path: Assets/Scenes/Game End.unity
     guid: 30c72ad4c38e83f4abd66b258144b6d5

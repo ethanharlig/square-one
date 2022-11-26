@@ -50,3 +50,5 @@ MonoBehaviour:
     type: 3}
   obstaclePrefab: {fileID: 7530635830996508701, guid: f675280fa843bac44b8f8dfc8d6b1fe4,
     type: 3}
+  waypointPrefab: {fileID: 7657155481513390226, guid: ee6ca17084a02304e92899b5db9814f9,
+    type: 3}

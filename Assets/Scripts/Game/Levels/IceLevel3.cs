@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// bigger level, hidden cubes
-public class LevelThreeManager : LevelManager
+// full ice level with following obstacle
+public class IceLevel3 : LevelManager
 {
     private List<GameState> gameStateOrder;
     private GameState currentGameState;
@@ -20,10 +20,11 @@ public class LevelThreeManager : LevelManager
         FAILED,
     };
 
+#pragma warning disable IDE0051
     void Start()
     {
-        gridSizeX = gridSizeY = 13;
-        turnLimit = 70;
+        gridSizeX = gridSizeY = 10;
+        turnLimit = 10;
 
         gameStateOrder = new List<GameState>
         {
@@ -37,7 +38,43 @@ public class LevelThreeManager : LevelManager
             GameState.SUCCESS
         };
 
-        SetupLevel();
+        SetupLevel(5, 5);
+
+        // TODO should rotate camera?
+        // TODO should rely on moving the obstacle around so you can hit it as a stopper
+
+        for (int x = 0; x < gridSizeX; x++)
+        {
+            for (int y = 0; y < gridSizeY; y++)
+            {
+                gridController.SpawnIceTile(x, y, OnIceTileSteppedOn);
+            }
+        }
+
+        waypoints = new() {
+            new Vector2Int(gridSizeX - 2, 1),
+            new Vector2Int(1, 4),
+            new Vector2Int(squareOne.x, squareOne.y),
+        };
+
+        SpawnNextWaypoint(waypoints);
+
+        // TODO this is copied from IceLevel2, think of new puzzle
+
+        // player is at 5, 5 so this is hittable
+        gridController.AddStationaryObstacleAtPosition(5, 0);
+        gridController.AddStationaryObstacleAtPosition(gridSizeX - 1, 1);
+        gridController.AddStationaryObstacleAtPosition(gridSizeX - 2, 6);
+        gridController.AddStationaryObstacleAtPosition(2, 5);
+        // allows player to hit red
+        gridController.AddStationaryObstacleAtPosition(3, 3);
+        gridController.AddStationaryObstacleAtPosition(0, 4);
+        gridController.AddStationaryObstacleAtPosition(1, gridSizeY);
+        // allows player to hit blue
+        gridController.AddStationaryObstacleAtPosition(squareOne.x + 1, gridSizeY - 1);
+
+        MovingObstacle follower = gridController.AddMovingObstacleAtPosition(0, 0);
+        follower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
 
         currentGameState = GameState.START;
     }
@@ -50,12 +87,13 @@ public class LevelThreeManager : LevelManager
             ManageGameState();
         }
     }
+#pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveStart(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
     {
         if (levelActive)
         {
-            turnsLeft--;
+            turnsLeft = turnLimit - playerController.GetMoveCount();
         }
     }
 
@@ -64,14 +102,9 @@ public class LevelThreeManager : LevelManager
         Vector2Int playerPos = playerController.GetCurrentPosition();
 
         // allow devMode to not fall out of map
-        if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
+        if (!gridController.IsWithinGrid(playerPos))
         {
             Debug.Log("Player has exited map.");
-            currentGameState = GameState.FAILED;
-        }
-        if (playerController.GetMoveCount() >= turnLimit)
-        {
-            Debug.Log("Player exceeded move count");
             currentGameState = GameState.FAILED;
         }
 
@@ -79,14 +112,10 @@ public class LevelThreeManager : LevelManager
         switch (currentGameState)
         {
             case GameState.START:
-                // secret location? kinda shitty to make player guess and check
-                if (playerPos.x == 9 && playerPos.y == 9)
-                {
-                    TransitionState();
-                }
+                TransitionState();
                 break;
             case GameState.GREEN_SETUP:
-                gridController.PaintTileAtLocation(0, 0, Color.green);
+                gridController.PaintTileAtLocation(waypoints[0], Color.green);
                 TransitionState();
                 break;
             case GameState.GREEN_HIT:
@@ -96,7 +125,7 @@ public class LevelThreeManager : LevelManager
                 }
                 break;
             case GameState.RED_SETUP:
-                gridController.PaintTileAtLocation(4, gridSizeY - 1, Color.red);
+                gridController.PaintTileAtLocation(waypoints[1], Color.red);
                 TransitionState();
                 break;
             case GameState.RED_HIT:
@@ -107,13 +136,16 @@ public class LevelThreeManager : LevelManager
                 break;
             case GameState.BLUE_SETUP:
                 // last step is back to square one
-                gridController.PaintTileAtLocation(squareOne.x, squareOne.y, Color.blue);
+                gridController.PaintTileAtLocation(waypoints[2], Color.blue);
                 TransitionState();
                 break;
             case GameState.BLUE_HIT:
                 if (gridController.TileColorAtLocation(playerPos) == Color.blue)
                 {
                     TransitionState();
+                    // you must manage game state here before falling through, otherwise you could be transitioning
+                    // into a success game state when you're at zero turns!
+                    ManageGameState();
                 }
                 break;
             case GameState.SUCCESS:
@@ -129,10 +161,17 @@ public class LevelThreeManager : LevelManager
                 break;
         }
 
+        if (turnsLeft <= 0)
+        {
+            Debug.Log("Player exceeded move count");
+            currentGameState = GameState.FAILED;
+        }
+
         void TransitionState()
         {
             // could probably use a better data structure as the state machine that allows a failure state as defined by the state machine
             currentGameState = gameStateOrder[gameStateOrder.IndexOf(currentGameState) + 1];
         }
+
     }
 }

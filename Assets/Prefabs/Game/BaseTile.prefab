@@ -14,9 +14,9 @@ GameObject:
   - component: {fileID: 5162435072927798672}
   - component: {fileID: -8448510206039411953}
   - component: {fileID: 7842314797687672023}
-  - component: {fileID: 7454945288733901394}
+  - component: {fileID: 5467143969465412186}
   m_Layer: 0
-  m_Name: PaintTile
+  m_Name: BaseTile
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -129,7 +129,7 @@ BoxCollider:
   serializedVersion: 2
   m_Size: {x: 1, y: 1, z: 1}
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &7454945288733901394
+--- !u!114 &5467143969465412186
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

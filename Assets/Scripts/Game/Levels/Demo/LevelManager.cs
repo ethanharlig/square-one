@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 
@@ -17,34 +18,28 @@ public abstract class LevelManager : MonoBehaviour
 
     protected Vector2Int squareOne;
     protected bool levelActive;
-
-    // these flags may be too dangerous, avoid using them
-    [SerializeField] protected bool DEV_MODE = false;
-    [SerializeField] private int DEV_MODE_GRID_SIZE_X, DEV_MODE_GRID_SIZE_Y, DEV_MODE_TURN_LIMIT;
+    protected List<Vector2Int> waypoints;
 
     protected void SetupLevel()
     {
+        int playerOffsetX = gridSizeX / 2;
+        int playerOffsetY = gridSizeY / 2;
 
-        if (DEV_MODE)
-        {
-            gridSizeX = DEV_MODE_GRID_SIZE_X;
-            gridSizeY = DEV_MODE_GRID_SIZE_Y;
-            turnLimit = DEV_MODE_TURN_LIMIT;
-        }
+        SetupLevel(playerOffsetX, playerOffsetY);
+    }
 
+    protected void SetupLevel(int playerOffsetX, int playerOffsetY)
+    {
         playerController = (PlayerController)PlayerController.Instance;
         gridController = (GridController)GridController.Instance;
         cameraController = (CameraController)CameraController.Instance;
 
         gridController.SetupGrid(gridSizeX, gridSizeY);
 
-        int playerOffsetX = gridSizeX / 2;
-        int playerOffsetY = gridSizeY / 2;
-
         playerController.SpawnPlayer(playerOffsetX, playerOffsetY);
         playerController.gameObject.SetActive(true);
 
-        cameraController.CenterCameraOnOffset(playerOffsetX, playerOffsetY);
+        cameraController.CenterCameraOnOffset(gridSizeX / 2, gridSizeY / 2);
 
         squareOne = new(playerOffsetX, playerOffsetY);
 
@@ -93,6 +88,13 @@ public abstract class LevelManager : MonoBehaviour
     protected virtual void OnPlayerMoveStart(Vector2Int playerPositionBeforeMove) { }
     protected virtual void OnPlayerMoveFinish(Vector2Int playerPositionAfterMove) { }
 
+    // levels shouldn't have access to know about if a move should count
+    private void OnPlayerMoveFinish(Vector2Int playerPositionAfterMove, bool _)
+    {
+        OnPlayerMoveFinish(playerPositionAfterMove);
+    }
+
+#pragma warning disable IDE0051
     // must be done at object enable time
     void OnEnable()
     {
@@ -108,6 +110,30 @@ public abstract class LevelManager : MonoBehaviour
         PlayerController.OnMoveStart -= OnPlayerMoveStart;
         PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
     }
+#pragma warning restore IDE0051
 
+    // TODO if player needs to step on multiple ice tiles which result in 0 moves remaining but a victory,
+    // they actually only traverse the first tile before the game state is checked. need to rethink
+    protected void OnIceTileSteppedOn(Vector3Int direction)
+    {
+        if (levelActive)
+        {
+            Debug.LogFormat("Stepped on ice tile in this direction: {0}", direction);
+            playerController.ForceMoveInDirection(direction);
+        }
+    }
 
+    protected void SpawnNextWaypoint(List<Vector2Int> waypoints)
+    {
+        if (waypoints.Count == 0)
+        {
+            // this should be part of the game state manager and will just switch the game state to success here!!
+            Debug.Log("no more waypoints to hit. player has won?");
+            return;
+        }
+        else
+        {
+            gridController.SpawnWaypoint(waypoints[0].x, waypoints[0].y, () => SpawnNextWaypoint(waypoints.GetRange(1, waypoints.Count - 1)));
+        }
+    }
 }

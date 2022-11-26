@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// ice tiles allow player to glide
-public class LevelEightManager : LevelManager
+// moving obstacles
+public class LevelFiveManager : LevelManager
 {
     private List<GameState> gameStateOrder;
     private GameState currentGameState;
@@ -20,9 +20,10 @@ public class LevelEightManager : LevelManager
         FAILED,
     };
 
+#pragma warning disable IDE0051
     void Start()
     {
-        gridSizeX = gridSizeY = 10;
+        gridSizeX = gridSizeY = 11;
         turnLimit = 70;
 
         gameStateOrder = new List<GameState>
@@ -39,46 +40,10 @@ public class LevelEightManager : LevelManager
 
         SetupLevel();
 
-        for (int ndx = 0; ndx < 5; ndx++)
-        {
-            int iceTileRow = 4 % gridSizeX;
-            int iceTileCol = (3 + ndx) % gridSizeY;
-            gridController.SpawnIceTile(iceTileRow, iceTileCol);
-            IceTile iceTile = (IceTile)gridController.TileAtLocation(iceTileRow, iceTileCol);
-            iceTile.WhenSteppedOn += OnIceTileSteppedOn;
-        }
-
-        for (int ndx = 0; ndx < 3; ndx++)
-        {
-            int iceTileRow = (gridSizeX - 3 - ndx) % gridSizeX;
-            int iceTileCol = (gridSizeY - 3) % gridSizeY;
-            gridController.SpawnIceTile(iceTileRow, iceTileCol);
-            IceTile iceTile = (IceTile)gridController.TileAtLocation(iceTileRow, iceTileCol);
-            iceTile.WhenSteppedOn += OnIceTileSteppedOn;
-        }
-
-        for (int ndx = 0; ndx < 2; ndx++)
-        {
-            int iceTileRow = (gridSizeX - 3 - ndx) % gridSizeX;
-            int iceTileCol = (gridSizeY - 2) % gridSizeY;
-            gridController.SpawnIceTile(iceTileRow, iceTileCol);
-            IceTile iceTile = (IceTile)gridController.TileAtLocation(iceTileRow, iceTileCol);
-            iceTile.WhenSteppedOn += OnIceTileSteppedOn;
-        }
-
-        gridController.AddObstacleAtPosition(4, 4);
-        gridController.AddObstacleAtPosition(6, 7);
+        MovingObstacle obstacle = gridController.AddMovingObstacleAtPosition(2, 1);
+        obstacle.StartPatrolling(new Vector2Int(8, 1), gridController.GetCurrentStationaryObstaclesAction());
 
         currentGameState = GameState.START;
-    }
-
-    void OnIceTileSteppedOn(Vector3Int direction)
-    {
-        if (levelActive)
-        {
-            Debug.LogFormat("Stepped on ice tile in this direction: {0}", direction);
-            playerController.ForceMoveInDirection(direction);
-        }
     }
 
     void Update()
@@ -89,12 +54,13 @@ public class LevelEightManager : LevelManager
             ManageGameState();
         }
     }
+#pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveStart(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
     {
-        if (levelActive && playerController.ShouldCountMoves())
+        if (levelActive)
         {
-            turnsLeft--;
+            turnsLeft = turnLimit - playerController.GetMoveCount();
         }
     }
 
@@ -103,14 +69,9 @@ public class LevelEightManager : LevelManager
         Vector2Int playerPos = playerController.GetCurrentPosition();
 
         // allow devMode to not fall out of map
-        if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
+        if (!gridController.IsWithinGrid(playerPos))
         {
             Debug.Log("Player has exited map.");
-            currentGameState = GameState.FAILED;
-        }
-        if (playerController.GetMoveCount() >= turnLimit)
-        {
-            Debug.Log("Player exceeded move count");
             currentGameState = GameState.FAILED;
         }
 
@@ -153,6 +114,9 @@ public class LevelEightManager : LevelManager
                 if (gridController.TileColorAtLocation(playerPos) == Color.blue)
                 {
                     TransitionState();
+                    // you must manage game state here before falling through, otherwise you could be transitioning
+                    // into a success game state when you're at zero turns!
+                    ManageGameState();
                 }
                 break;
             case GameState.SUCCESS:
@@ -167,6 +131,13 @@ public class LevelEightManager : LevelManager
                 Debug.LogErrorFormat("Encountered unexpected game state: {0}", currentGameState);
                 break;
         }
+
+        if (currentGameState != GameState.SUCCESS && turnsLeft <= 0)
+        {
+            Debug.Log("Player exceeded move count");
+            currentGameState = GameState.FAILED;
+        }
+
 
         void TransitionState()
         {
