@@ -47,7 +47,7 @@ public class ChaseLevel1 : LevelManager
         ObstacleController stationaryObstacle = gridController.AddStationaryObstacleAtPosition(4, 4);
 
         MovingObstacle obstacle = gridController.AddMovingObstacleAtPosition(2, 1);
-        obstacle.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
+        obstacle.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction(), false);
         gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
 
         obstacles.Add(obstacle);

@@ -24,7 +24,7 @@ public class IceLevel3 : LevelManager
     void Start()
     {
         gridSizeX = gridSizeY = 10;
-        turnLimit = 10;
+        turnLimit = 20;
 
         gameStateOrder = new List<GameState>
         {
@@ -73,8 +73,17 @@ public class IceLevel3 : LevelManager
         // allows player to hit blue
         gridController.AddStationaryObstacleAtPosition(squareOne.x + 1, gridSizeY - 1);
 
-        MovingObstacle follower = gridController.AddMovingObstacleAtPosition(0, 0);
-        follower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
+        gridController.AddStationaryObstacleAtPosition(gridSizeX - 2, -1);
+        gridController.AddStationaryObstacleAtPosition(-1, gridSizeY - 2);
+        gridController.AddStationaryObstacleAtPosition(1, -1);
+        gridController.AddStationaryObstacleAtPosition(gridSizeX - 1, 2);
+
+        MovingObstacle lowerQuadrantFollower = gridController.AddMovingObstacleAtPosition(0, 0);
+        lowerQuadrantFollower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction(), false);
+
+        MovingObstacle upperQuadrantFollower = gridController.AddMovingObstacleAtPosition(gridSizeX - 1, gridSizeY - 3);
+        upperQuadrantFollower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction(), false);
+
 
         currentGameState = GameState.START;
     }

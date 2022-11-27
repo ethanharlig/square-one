@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+// TODO should have a non-aggressive moving obstacle which doesn't shove player
 public class MovingObstacle : ObstacleController
 {
     private enum MoveDirection
@@ -13,6 +14,7 @@ public class MovingObstacle : ObstacleController
 
     private bool _isPatrolling;
     private Func<HashSet<Vector2Int>> getCurrentStationaryObstacles;
+    private bool aggressive = true;
 
     public void StartPatrolling(Vector2Int patrolPosition, Func<HashSet<Vector2Int>> getCurrentStationaryObstaclesAction)
     {
@@ -42,7 +44,7 @@ public class MovingObstacle : ObstacleController
             StartCoroutine(ChangePatrolDirectionWhenDonePatrolling(moveDirection));
 
             Vector2Int curPosition = GetPositionAsVector2Int();
-            MoveTowardsPosition(out int xDiff, out int yDiff, curPosition, endPosition);
+            MoveTowardsPosition(out int xDiff, out int yDiff, curPosition, endPosition, null);
 
             while (xDiff != 0 || yDiff != 0)
             {
@@ -59,7 +61,7 @@ public class MovingObstacle : ObstacleController
                 {
                     curPosition = GetPositionAsVector2Int();
                 }
-                MoveTowardsPosition(out xDiff, out yDiff, curPosition, endPosition);
+                MoveTowardsPosition(out xDiff, out yDiff, curPosition, endPosition, null);
             }
             _isPatrolling = false;
         }
@@ -96,9 +98,15 @@ public class MovingObstacle : ObstacleController
 
     public void MoveTowardsPlayer(PlayerController playerController, Func<HashSet<Vector2Int>> getCurrentStationaryObstaclesAction)
     {
+        MoveTowardsPlayer(playerController, getCurrentStationaryObstaclesAction, true);
+    }
+
+    public void MoveTowardsPlayer(PlayerController playerController, Func<HashSet<Vector2Int>> getCurrentStationaryObstaclesAction, bool aggressive)
+    {
         Cube.SetRollSpeed(playerController.GetRollSpeed());
         _moveTowardsPlayer = true;
         getCurrentStationaryObstacles = getCurrentStationaryObstaclesAction;
+        this.aggressive = aggressive;
     }
 
     // TODO is this only applicable for _moveTowardsPlayer?
@@ -115,7 +123,8 @@ public class MovingObstacle : ObstacleController
     // obstacles always roll
     private static readonly Cube.MoveType _moveType = Cube.MoveType.ROLL;
 
-    private void MoveTowardsPosition(out int xDiff, out int yDiff, Vector2Int curPosition, Vector2Int endPosition)
+    // TODO shouldn't move outside of map too!!
+    private void MoveTowardsPosition(out int xDiff, out int yDiff, Vector2Int curPosition, Vector2Int endPosition, Vector2Int? playerPosition)
     {
         xDiff = Mathf.Abs(curPosition.x - endPosition.x);
         yDiff = Mathf.Abs(curPosition.y - endPosition.y);
@@ -134,22 +143,25 @@ public class MovingObstacle : ObstacleController
             if (curPosition.x > endPosition.x)
             {
                 directions.Add(Vector3.left);
-                directions.Add(Vector3.right);
+                // directions.Add(Vector3.right);
             }
             else
             {
                 directions.Add(Vector3.right);
-                directions.Add(Vector3.left);
+                // directions.Add(Vector3.left);
             }
 
-            bool backFirst = curPosition.y > endPosition.y;
-            if (backFirst)
+            if (yDiff != 0)
             {
-                directions.InsertRange(1, new List<Vector3>() { Vector3.back, Vector3.forward });
-            }
-            else
-            {
-                directions.InsertRange(1, new List<Vector3>() { Vector3.forward, Vector3.back });
+                bool backFirst = curPosition.y > endPosition.y;
+                if (backFirst)
+                {
+                    directions.InsertRange(1, new List<Vector3>() { Vector3.back, Vector3.forward });
+                }
+                else
+                {
+                    directions.InsertRange(1, new List<Vector3>() { Vector3.forward, Vector3.back });
+                }
             }
 
         }
@@ -161,27 +173,33 @@ public class MovingObstacle : ObstacleController
                 if (curPosition.y > endPosition.y)
                 {
                     directions.Add(Vector3.back);
-                    directions.Add(Vector3.forward);
+                    // directions.Add(Vector3.forward);
                 }
                 else
                 {
                     directions.Add(Vector3.forward);
-                    directions.Add(Vector3.back);
+                    // directions.Add(Vector3.back);
                 }
-                bool leftFirst = curPosition.x > endPosition.x;
-                if (leftFirst)
+                if (xDiff != 0)
                 {
-                    directions.InsertRange(1, new List<Vector3>() { Vector3.left, Vector3.right });
-                }
-                else
-                {
-                    directions.InsertRange(1, new List<Vector3>() { Vector3.right, Vector3.left });
+                    bool leftFirst = curPosition.x > endPosition.x;
+                    if (leftFirst)
+                    {
+                        directions.InsertRange(1, new List<Vector3>() { Vector3.left, Vector3.right });
+                    }
+                    else
+                    {
+                        directions.InsertRange(1, new List<Vector3>() { Vector3.right, Vector3.left });
+                    }
                 }
             }
         }
 
         Queue<Vector3> directionsQueue = new(directions);
-        MoveInNextDirectionIfNoBlocker(curPosition, directionsQueue, currentStationaryObstacles);
+
+        // TODO need to take into account moving obstacles too
+        // if there is obstacle in direction that I would move player, don't move there
+        MoveInNextDirectionIfNoBlocker(curPosition, directionsQueue, currentStationaryObstacles, playerPosition);
     }
 
     bool IsStationaryObstacleInWay(int desiredX, int desiredY, HashSet<Vector2Int> currentStationaryObstacles)
@@ -189,23 +207,27 @@ public class MovingObstacle : ObstacleController
         return currentStationaryObstacles.Contains(new Vector2Int(desiredX, desiredY));
     }
 
-    private void MoveInNextDirectionIfNoBlocker(Vector2Int curPosition, Queue<Vector3> directions, HashSet<Vector2Int> currentStationaryObstacles)
+    private void MoveInNextDirectionIfNoBlocker(Vector2Int curPosition, Queue<Vector3> directions, HashSet<Vector2Int> currentStationaryObstacles, Vector2Int? playerPosition)
     {
         Debug.Log("Check if we have a direction to go");
         // not possible to try other way to move now
         if (0 == directions.Count) return;
 
         Vector3 thisDir = directions.Dequeue();
-        Vector3 desiredPosition = new Vector3Int(curPosition.x, 0, curPosition.y) + thisDir;
+        Vector3 desiredPosition3d = new Vector3Int(curPosition.x, 0, curPosition.y) + thisDir;
+        Vector2Int desiredPosition = new(Mathf.RoundToInt(desiredPosition3d.x), Mathf.RoundToInt(desiredPosition3d.z));
 
         Debug.LogFormat("Checking if we can move in this direction {0} at this position {1} with this desired pos {2}", thisDir, curPosition, desiredPosition);
-        if (IsStationaryObstacleInWay(Mathf.RoundToInt(desiredPosition.x), Mathf.RoundToInt(desiredPosition.z), currentStationaryObstacles))
+        if (IsStationaryObstacleInWay(desiredPosition.x, desiredPosition.y, currentStationaryObstacles))
         {
-            MoveInNextDirectionIfNoBlocker(curPosition, directions, currentStationaryObstacles);
+            MoveInNextDirectionIfNoBlocker(curPosition, directions, currentStationaryObstacles, playerPosition);
         }
         else
         {
-            Cube.MoveInDirectionIfNotMoving(thisDir, _moveType, false);
+            if (aggressive || desiredPosition != playerPosition)
+            {
+                Cube.MoveInDirectionIfNotMoving(thisDir, _moveType, false);
+            }
         }
     }
 
@@ -216,7 +238,7 @@ public class MovingObstacle : ObstacleController
         if (_moveTowardsPlayer && moveShouldCount)
         {
             // move one unit torwads player's position
-            MoveTowardsPosition(out _, out _, GetPositionAsVector2Int(), playerPosition);
+            MoveTowardsPosition(out _, out _, GetPositionAsVector2Int(), playerPosition, playerPosition);
         }
     }
 

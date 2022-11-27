@@ -40,7 +40,7 @@ public class ChaseLevel2 : LevelManager
             GameState.SUCCESS
         };
 
-        SetupLevel();
+        SetupLevel(1, 1);
 
         obstacles = new List<MovingObstacle>();
 
@@ -56,15 +56,21 @@ public class ChaseLevel2 : LevelManager
             gridController.AddStationaryObstacleAtPosition(x, gridSizeY - 4);
         }
 
+        waypoints = new() {
+            new Vector2Int(gridSizeX - 1, gridSizeY - 5),
+            new Vector2Int(gridSizeX - 1, 2),
+            new Vector2Int(squareOne.x, squareOne.y),
+        };
+        SpawnNextWaypoint(waypoints);
+
         // TODO should setup level with waypoints
 
-        MovingObstacle obstacle = gridController.AddMovingObstacleAtPosition(2, gridSizeY - 1);
-        obstacle.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
+        MovingObstacle follower = gridController.AddMovingObstacleAtPosition(2, gridSizeY - 1);
+        follower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction());
+        obstacles.Add(follower);
 
         // can maybe use disable button as bait?
         // gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
-
-        obstacles.Add(obstacle);
 
         currentGameState = GameState.START;
     }
