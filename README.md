@@ -24,6 +24,7 @@ Here's what it looks like in its current state
 
 - [ ] Leaderboard per-level
 - [ ] Leaderboard for total turns remaining summation golf
+- [ ] Stars per level based on how well they do
 
 ## Level ideas
 
