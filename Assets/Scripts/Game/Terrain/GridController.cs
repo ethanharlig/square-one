@@ -187,13 +187,6 @@ public class GridController : Singleton<GridController>
         ((PaintTile)gridRows[x][y]).Paint(color);
     }
 
-    public void SpawnWaypoint(Vector2Int position)
-    {
-        GameObject waypoint = Instantiate(waypointPrefab);
-        waypoint.transform.localPosition = new Vector3(position.x, 1.0f, position.y);
-        waypoint.name = string.Format("Waypoint [{0}, {1}]", position.x, position.y);
-    }
-
     public void SpawnWaypoint(Vector2Int position, WaypointController.OnTriggeredAction onTriggeredAction)
     {
         SpawnWaypoint(position.x, position.y, onTriggeredAction);

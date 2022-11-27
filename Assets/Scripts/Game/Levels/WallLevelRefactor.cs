@@ -10,8 +10,6 @@ public class WallLevelRefactor : LevelManager
     private List<MovingObstacle> obstacles;
     int timesWallMoved = 0;
 
-    private GameStateManager gsm;
-
 #pragma warning disable IDE0051
     void Start()
     {
@@ -27,10 +25,11 @@ public class WallLevelRefactor : LevelManager
         };
 
         // setup GSM and make sure to turn off autospawn so we can control
-        gsm = new GameStateManager(playerController, gridController, waypointsInOrder);
+        gsm.SetWaypoints(waypointsInOrder, false);
         gsm.SetTurnLimit(turnLimit);
-        gsm.AutoSpawnEnabled = false;
         gsm.OnWaypointHit += OnWaypointHit;
+
+        gsm.ManageGameState();
 
         gsm.SpawnNextWaypoint();
 
@@ -43,21 +42,11 @@ public class WallLevelRefactor : LevelManager
         obstacles[^1].SetAfterRollAction((_, _) => AfterObjectMoves());
     }
 
-    void Update()
-    {
-        SetMoveCountText();
-        if (levelActive)
-        {
-            // ManageGameState();
-            gsm.ManageGameState();
-        }
-    }
 #pragma warning restore IDE0051
 
     // must implement since we don't want the GSM to auto manage the waypoints
     void OnWaypointHit(int waypoint, Vector2Int pos, Color color)
     {
-        Debug.Log("Waypoint hit");
         if (waypoint == 0)
         {
             // if we hit the first waypoint, move the wall tiles
@@ -69,11 +58,11 @@ public class WallLevelRefactor : LevelManager
             gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 2, OnIceTileSteppedOn);
             gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 3, OnIceTileSteppedOn);
             gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 4, OnIceTileSteppedOn);
+            gsm.SpawnNextWaypoint();
         }
         else
         {
-            Debug.Log("HITTING ELSE");
-            // gsm.SpawnNextWaypoint();
+            gsm.SpawnNextWaypoint();
         }
     }
 
@@ -114,11 +103,12 @@ public class WallLevelRefactor : LevelManager
         timesWallMoved++;
     }
 
-    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
     {
-        if (levelActive)
+        if (shouldCountMove)
         {
             turnsLeft = turnLimit - playerController.GetMoveCount();
+
         }
     }
 

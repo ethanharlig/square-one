@@ -18,8 +18,6 @@ public class GameStateManager
     private GridController gridController;
     private PlayerController playerController;
 
-    private bool DEV_MODE = false;
-
     private int turnLimit;
 
     private bool turnLimitEnabled = false;
@@ -27,8 +25,11 @@ public class GameStateManager
     public delegate void WaypointHitAction(int idx, Vector2Int pos, Color color);
     public event WaypointHitAction OnWaypointHit;
 
+    public delegate void StateChangeAction(GameState state);
+    public event StateChangeAction OnStateChange;
 
-    enum GameState
+
+    public enum GameState
     {
         START,
         PLAYING,
@@ -51,10 +52,10 @@ public class GameStateManager
 
         this.waypoints = new List<(Vector2Int, Color)>();
 
-        actions = new() {
-            CheckWithinGrid,
-            CheckPlayerPosition
-        };
+        PlayerController.OnMoveFinish += CheckTurnLimit;
+
+        actions = new();
+
         TransitionState(GameState.START);
     }
 
@@ -81,67 +82,28 @@ public class GameStateManager
         waypoints.Add(waypoint);
     }
 
-    // Sets if dev mode is enabled. False by default
-    public void SetDevMode(bool devMode)
-    {
-        DEV_MODE = devMode;
-    }
-
     public void SetTurnLimit(int turnLimit)
     {
         this.turnLimit = turnLimit;
         this.turnLimitEnabled = true;
-
-        actions.Add(CheckTurnLimit);
     }
 
-    private void CheckTurnLimit()
+    private void CheckTurnLimit(Vector2Int positionAfterMove, bool moveShouldCount)
     {
         if (!turnLimitEnabled)
         {
             return;
         }
-        if (playerController.GetMoveCount() >= turnLimit)
+        if (moveShouldCount && playerController.GetMoveCount() >= turnLimit)
         {
             TransitionState(GameState.FAILED);
         }
     }
-
-    private void CheckWithinGrid()
-    {
-        Vector2Int playerPos = playerController.GetCurrentPosition();
-        if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
-        {
-            TransitionState(GameState.FAILED);
-        }
-    }
-
-    private void CheckPlayerPosition()
-    {
-        Vector2Int playerPos = playerController.GetCurrentPosition();
-        Vector2Int nextWaypoint = waypoints[activeWaypoint].Item1;
-        // check if player has hit the next active tile
-        if (playerPos.x == nextWaypoint.x && playerPos.y == nextWaypoint.y)
-        {
-            if (OnWaypointHit != null)
-            {
-                OnWaypointHit(activeWaypoint, waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
-            }
-
-            if (AutoSpawnEnabled)
-            {
-                SpawnNextWaypoint();
-            }
-        }
-
-    }
-
     /**
        * Spawns next waypoint in the waypoints arrray and paints correct color 
     */
     public void SpawnNextWaypoint()
     {
-        Debug.Log("Spawning next Waypoint");
         activeWaypoint += 1;
 
         if (activeWaypoint == waypoints.Count)
@@ -150,14 +112,48 @@ public class GameStateManager
         }
         else
         {
-            gridController.SpawnWaypoint(waypoints[activeWaypoint].Item1);
+            gridController.SpawnWaypoint(waypoints[activeWaypoint].Item1, () => WaypointHit());
             gridController.PaintTileAtLocation(waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
         }
 
     }
 
-    void TransitionState(GameState nextState) {
+    private void WaypointHit()
+    {
+        if (OnWaypointHit != null)
+        {
+            OnWaypointHit(activeWaypoint, waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
+        }
+
+        if (AutoSpawnEnabled)
+        {
+            SpawnNextWaypoint();
+        }
+    }
+
+    void TransitionState(GameState nextState)
+    {
+        if (currentState == GameState.FAILED || currentState == GameState.SUCCESS)
+        {
+            // do not allow to transition to failed / success states from failed / success states
+            return;
+        }
+
+
         currentState = nextState;
+        if (OnStateChange != null)
+        {
+            OnStateChange(currentState);
+        }
+    }
+
+    public void CheckPlayerState()
+    {
+        Vector2Int playerPos = playerController.GetCurrentPosition();
+        if (!gridController.IsWithinGrid(playerPos))
+        {
+            TransitionState(GameState.FAILED);
+        }
     }
 
 
@@ -168,7 +164,8 @@ public class GameStateManager
             case GameState.START:
                 // welcome text or interaction?
                 // make an LevelUI or something if theres a new mechanic to introduce
-                if (AutoSpawnEnabled) {
+                if (AutoSpawnEnabled)
+                {
                     SpawnNextWaypoint();
                 }
                 TransitionState(GameState.PLAYING);
