@@ -6,7 +6,7 @@ using System;
 public class GameStateManager
 {
 
-    List<(Vector2Int, Color)> waypoints;
+    List<Vector2Int> waypoints;
 
     int activeWaypoint;
 
@@ -22,7 +22,7 @@ public class GameStateManager
 
     private bool turnLimitEnabled = false;
 
-    public delegate void WaypointHitAction(int idx, Vector2Int pos, Color color);
+    public delegate void WaypointHitAction(int idx, Vector2Int pos);
     public event WaypointHitAction OnWaypointHit;
 
     public delegate void StateChangeAction(GameState state);
@@ -50,7 +50,7 @@ public class GameStateManager
 
         activeWaypoint = -1;
 
-        this.waypoints = new List<(Vector2Int, Color)>();
+        this.waypoints = new List<Vector2Int>();
 
         PlayerController.OnMoveFinish += CheckTurnLimit;
 
@@ -59,12 +59,12 @@ public class GameStateManager
         TransitionState(GameState.START);
     }
 
-    public GameStateManager(PlayerController player, GridController grid, (Vector2Int, Color)[] waypoints) : this(player, grid)
+    public GameStateManager(PlayerController player, GridController grid, Vector2Int[] waypoints) : this(player, grid)
     {
         this.waypoints = new(waypoints);
     }
 
-    public void SetWaypoints((Vector2Int, Color)[] waypoints, bool autoTrack)
+    public void SetWaypoints(Vector2Int[] waypoints, bool autoTrack)
     {
         this.waypoints = new(waypoints);
 
@@ -72,7 +72,7 @@ public class GameStateManager
     }
 
     // Adds a tile to the current active path
-    public void AddWaypoint((Vector2Int, Color) waypoint)
+    public void AddWaypoint(Vector2Int waypoint)
     {
         if (waypoints.Count == 0)
         {
@@ -94,8 +94,7 @@ public class GameStateManager
         {
             return;
         }
-        if (moveShouldCount && playerController.GetMoveCount() >= turnLimit)
-        {
+        if (moveShouldCount && playerController.GetMoveCount() >= turnLimit)        {
             TransitionState(GameState.FAILED);
         }
     }
@@ -112,8 +111,7 @@ public class GameStateManager
         }
         else
         {
-            gridController.SpawnWaypoint(waypoints[activeWaypoint].Item1, () => WaypointHit());
-            gridController.PaintTileAtLocation(waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
+            gridController.SpawnWaypoint(waypoints[activeWaypoint], () => WaypointHit());
         }
 
     }
@@ -122,7 +120,7 @@ public class GameStateManager
     {
         if (OnWaypointHit != null)
         {
-            OnWaypointHit(activeWaypoint, waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
+            OnWaypointHit(activeWaypoint, waypoints[activeWaypoint]);
         }
 
         if (AutoSpawnEnabled)

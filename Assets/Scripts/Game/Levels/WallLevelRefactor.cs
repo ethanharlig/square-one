@@ -18,10 +18,10 @@ public class WallLevelRefactor : LevelManager
 
         SetupLevel(2, 3);
 
-        (Vector2Int, Color)[] waypointsInOrder = new[] {
-            (new Vector2Int(gridSizeX - 1, gridSizeY - 2), Color.green),
-            (new Vector2Int(gridSizeX - 2, gridSizeY - 1), Color.red),
-            (new Vector2Int(squareOne.x, squareOne.y), Color.blue)
+        Vector2Int[] waypointsInOrder = new[] {
+            new Vector2Int(gridSizeX - 1, gridSizeY - 2),
+            new Vector2Int(gridSizeX - 2, gridSizeY - 1),
+            new Vector2Int(squareOne.x, squareOne.y)
         };
 
         // setup GSM and make sure to turn off autospawn so we can control
@@ -45,7 +45,7 @@ public class WallLevelRefactor : LevelManager
 #pragma warning restore IDE0051
 
     // must implement since we don't want the GSM to auto manage the waypoints
-    void OnWaypointHit(int waypoint, Vector2Int pos, Color color)
+    void OnWaypointHit(int waypoint, Vector2Int pos)
     {
         if (waypoint == 0)
         {
