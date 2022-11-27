@@ -12,7 +12,6 @@ public class WallLevel1 : LevelManager
     private List<MovingObstacle> obstacles;
     int timesWallMoved = 0;
 
-
     enum GameState
     {
         START,

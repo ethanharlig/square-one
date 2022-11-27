@@ -1,14 +1,19 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System;
 
+
 public class GameStateManager
 {
 
-    List<(TileController, Color)> tilePath;
+    List<(Vector2Int, Color)> waypoints;
 
-    int activeTile;
+    int activeWaypoint;
+
+    public bool AutoSpawnEnabled
+    {
+        get; set;
+    }
 
     private GridController gridController;
     private PlayerController playerController;
@@ -18,6 +23,10 @@ public class GameStateManager
     private int turnLimit;
 
     private bool turnLimitEnabled = false;
+
+    public delegate void WaypointHitAction(int idx, Vector2Int pos, Color color);
+    public event WaypointHitAction OnWaypointHit;
+
 
     enum GameState
     {
@@ -37,36 +46,39 @@ public class GameStateManager
     {
         playerController = player;
         gridController = grid;
-        this.tilePath = new List<(TileController, Color)>();
+
+        activeWaypoint = -1;
+
+        this.waypoints = new List<(Vector2Int, Color)>();
 
         actions = new() {
             CheckWithinGrid,
             CheckPlayerPosition
         };
+        TransitionState(GameState.START);
     }
 
-    /*
-        Constructor that initializes a tile path. Calls the default constructor
-    */
-    public GameStateManager(PlayerController player, GridController grid, (TileController, Color)[] tilePath) : this(player, grid)
+    public GameStateManager(PlayerController player, GridController grid, (Vector2Int, Color)[] waypoints) : this(player, grid)
     {
-        if (tilePath.Length > 0)
-        {
-            activeTile = 0;
-        }
+        this.waypoints = new(waypoints);
+    }
 
-        this.tilePath = new(tilePath);
+    public void SetWaypoints((Vector2Int, Color)[] waypoints, bool autoTrack)
+    {
+        this.waypoints = new(waypoints);
+
+        this.AutoSpawnEnabled = autoTrack;
     }
 
     // Adds a tile to the current active path
-    public void AddTileToPath(TileController tile, Color color)
+    public void AddWaypoint((Vector2Int, Color) waypoint)
     {
-        if (tilePath.Count == 0)
+        if (waypoints.Count == 0)
         {
-            activeTile = 0;
+            activeWaypoint = 0;
         }
 
-        tilePath.Add((tile, color));
+        waypoints.Add(waypoint);
     }
 
     // Sets if dev mode is enabled. False by default
@@ -91,7 +103,7 @@ public class GameStateManager
         }
         if (playerController.GetMoveCount() >= turnLimit)
         {
-            currentState = GameState.FAILED;
+            TransitionState(GameState.FAILED);
         }
     }
 
@@ -100,50 +112,72 @@ public class GameStateManager
         Vector2Int playerPos = playerController.GetCurrentPosition();
         if (!DEV_MODE && !gridController.IsWithinGrid(playerPos))
         {
-            currentState = GameState.FAILED;
+            TransitionState(GameState.FAILED);
         }
     }
 
     private void CheckPlayerPosition()
     {
         Vector2Int playerPos = playerController.GetCurrentPosition();
-        TileController playerTile = gridController.TileAtLocation(playerPos.x, playerPos.y);
-
+        Vector2Int nextWaypoint = waypoints[activeWaypoint].Item1;
         // check if player has hit the next active tile
-        if (playerTile == tilePath[activeTile].Item1)
+        if (playerPos.x == nextWaypoint.x && playerPos.y == nextWaypoint.y)
         {
-            ActivateNextTile(playerPos);
+            if (OnWaypointHit != null)
+            {
+                OnWaypointHit(activeWaypoint, waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
+            }
+
+            if (AutoSpawnEnabled)
+            {
+                SpawnNextWaypoint();
+            }
         }
 
     }
 
-    private void ActivateNextTile(Vector2Int playerPos)
+    /**
+       * Spawns next waypoint in the waypoints arrray and paints correct color 
+    */
+    public void SpawnNextWaypoint()
     {
-        activeTile += 1;
-        // we've reached the end of the path and the game is over
-        if (activeTile == tilePath.Count)
+        Debug.Log("Spawning next Waypoint");
+        activeWaypoint += 1;
+
+        if (activeWaypoint == waypoints.Count)
         {
-            currentState = GameState.SUCCESS;
+            TransitionState(GameState.SUCCESS);
         }
         else
         {
-            gridController.PaintTileAtLocation(playerPos, tilePath[activeTile].Item2);
+            gridController.SpawnWaypoint(waypoints[activeWaypoint].Item1);
+            gridController.PaintTileAtLocation(waypoints[activeWaypoint].Item1, waypoints[activeWaypoint].Item2);
         }
+
+    }
+
+    void TransitionState(GameState nextState) {
+        currentState = nextState;
     }
 
 
-    void ManageGameState()
+    public void ManageGameState()
     {
         switch (currentState)
         {
             case GameState.START:
                 // welcome text or interaction?
                 // make an LevelUI or something if theres a new mechanic to introduce
+                if (AutoSpawnEnabled) {
+                    SpawnNextWaypoint();
+                }
+                TransitionState(GameState.PLAYING);
                 break;
             case GameState.PLAYING:
                 // player is currently playing the level
                 // main checks and mechanics
-                foreach (Action func in actions) {
+                foreach (Action func in actions)
+                {
                     func();
                 }
                 break;
