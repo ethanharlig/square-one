@@ -94,7 +94,8 @@ public class GameStateManager
         {
             return;
         }
-        if (moveShouldCount && playerController.GetMoveCount() >= turnLimit)        {
+        if (moveShouldCount && playerController.GetMoveCount() >= turnLimit)
+        {
             TransitionState(GameState.FAILED);
         }
     }
