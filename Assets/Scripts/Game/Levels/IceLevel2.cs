@@ -4,21 +4,6 @@ using UnityEngine;
 // full ice level with distractions
 public class IceLevel2 : LevelManager
 {
-    private List<GameState> gameStateOrder;
-    private GameState currentGameState;
-
-    enum GameState
-    {
-        START,
-        GREEN_SETUP,
-        GREEN_HIT,
-        RED_SETUP,
-        RED_HIT,
-        BLUE_SETUP,
-        BLUE_HIT,
-        SUCCESS,
-        FAILED,
-    };
 
 #pragma warning disable IDE0051
     void Start()
@@ -26,19 +11,18 @@ public class IceLevel2 : LevelManager
         gridSizeX = gridSizeY = 10;
         turnLimit = 10;
 
-        gameStateOrder = new List<GameState>
-        {
-            GameState.START,
-            GameState.GREEN_SETUP,
-            GameState.GREEN_HIT,
-            GameState.RED_SETUP,
-            GameState.RED_HIT,
-            GameState.BLUE_SETUP,
-            GameState.BLUE_HIT,
-            GameState.SUCCESS
+        SetupLevel(5, 5);
+
+        Vector2Int[] waypointsInOrder = new[] {
+            new Vector2Int(gridSizeX - 2, 1),
+            new Vector2Int(1, 4),
+            new Vector2Int(squareOne.x, squareOne.y),
         };
 
-        SetupLevel(5, 5);
+
+        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetTurnLimit(turnLimit);
+        gsm.ManageGameState();
 
         for (int x = 0; x < gridSizeX; x++)
         {
@@ -47,14 +31,6 @@ public class IceLevel2 : LevelManager
                 gridController.SpawnIceTile(x, y, OnIceTileSteppedOn);
             }
         }
-
-        waypoints = new() {
-            new Vector2Int(gridSizeX - 2, 1),
-            new Vector2Int(1, 4),
-            new Vector2Int(squareOne.x, squareOne.y),
-        };
-
-        SpawnNextWaypoint(waypoints);
 
         // player is at 5, 5 so this is hittable
         gridController.AddStationaryObstacleAtPosition(5, 0);
@@ -75,103 +51,15 @@ public class IceLevel2 : LevelManager
         gridController.AddStationaryObstacleAtPosition(gridSizeX, 5);
         gridController.AddStationaryObstacleAtPosition(gridSizeX - 1, gridSizeY);
         gridController.AddStationaryObstacleAtPosition(-1, gridSizeY - 1);
-
-        currentGameState = GameState.START;
     }
 
-    void Update()
-    {
-        SetMoveCountText();
-        if (levelActive)
-        {
-            ManageGameState();
-        }
-    }
 #pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveFinish(Vector2Int playerPosition)
+    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
     {
-        if (levelActive)
+        if (shouldCountMove)
         {
             turnsLeft = turnLimit - playerController.GetMoveCount();
         }
-    }
-
-    void ManageGameState()
-    {
-        Vector2Int playerPos = playerController.GetCurrentPosition();
-
-        // allow devMode to not fall out of map
-        if (!gridController.IsWithinGrid(playerPos))
-        {
-            Debug.Log("Player has exited map.");
-            currentGameState = GameState.FAILED;
-        }
-
-        // game state handler
-        switch (currentGameState)
-        {
-            case GameState.START:
-                TransitionState();
-                break;
-            case GameState.GREEN_SETUP:
-                gridController.PaintTileAtLocation(waypoints[0], Color.green);
-                TransitionState();
-                break;
-            case GameState.GREEN_HIT:
-                if (gridController.TileColorAtLocation(playerPos) == Color.green)
-                {
-                    TransitionState();
-                }
-                break;
-            case GameState.RED_SETUP:
-                gridController.PaintTileAtLocation(waypoints[1], Color.red);
-                TransitionState();
-                break;
-            case GameState.RED_HIT:
-                if (gridController.TileColorAtLocation(playerPos) == Color.red)
-                {
-                    TransitionState();
-                }
-                break;
-            case GameState.BLUE_SETUP:
-                // last step is back to square one
-                gridController.PaintTileAtLocation(waypoints[2], Color.blue);
-                TransitionState();
-                break;
-            case GameState.BLUE_HIT:
-                if (gridController.TileColorAtLocation(playerPos) == Color.blue)
-                {
-                    TransitionState();
-                    // you must manage game state here before falling through, otherwise you could be transitioning
-                    // into a success game state when you're at zero turns!
-                    ManageGameState();
-                }
-                break;
-            case GameState.SUCCESS:
-                Debug.Log("Player has won!");
-                SetTerminalGameState(successElements);
-                break;
-            case GameState.FAILED:
-                Debug.Log("Player has failed.");
-                SetTerminalGameState(failedElements);
-                break;
-            default:
-                Debug.LogErrorFormat("Encountered unexpected game state: {0}", currentGameState);
-                break;
-        }
-
-        if (turnsLeft <= 0)
-        {
-            Debug.Log("Player exceeded move count");
-            currentGameState = GameState.FAILED;
-        }
-
-        void TransitionState()
-        {
-            // could probably use a better data structure as the state machine that allows a failure state as defined by the state machine
-            currentGameState = gameStateOrder[gameStateOrder.IndexOf(currentGameState) + 1];
-        }
-
     }
 }
