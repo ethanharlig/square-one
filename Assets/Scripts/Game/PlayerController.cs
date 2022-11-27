@@ -57,7 +57,7 @@ public class PlayerController : Singleton<PlayerController>
         int movementY = Mathf.RoundToInt(movementVector.y);
 
         Vector3Int relativeMoveDirection = GetRelativeMoveDirectionWithCameraOffset(movementX, movementY);
-        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, true);
+        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, shouldCountMoves);
 
         // TODO player can float by constant input, how to disallow? prev solution below
 
