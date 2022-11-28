@@ -57,7 +57,7 @@ public class ChaseLevel2 : LevelManager
         // gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
     }
 
-    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
+    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
     {
         if (shouldCountMove)
         {

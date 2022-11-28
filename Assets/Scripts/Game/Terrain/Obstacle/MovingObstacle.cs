@@ -246,6 +246,7 @@ public class MovingObstacle : ObstacleController
 
     private void OnPlayerMoveFinish(Vector2Int playerPosition, bool moveShouldCount)
     {
+        // TODO this triggers when player moves into wall
         if (_moveTowardsPlayer && moveShouldCount)
         {
             // move one unit torwads player's position
@@ -257,14 +258,14 @@ public class MovingObstacle : ObstacleController
     // must be done at object enable time
     private void OnEnable()
     {
-        PlayerController.OnMoveFinish += OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted += OnPlayerMoveFinish;
 
     }
 
     // make sure to deregister at disable time
     private void OnDisable()
     {
-        PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted -= OnPlayerMoveFinish;
     }
 
     

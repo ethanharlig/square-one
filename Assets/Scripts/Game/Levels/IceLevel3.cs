@@ -9,7 +9,7 @@ public class IceLevel3 : LevelManager
     void Start()
     {
         gridSizeX = gridSizeY = 8;
-        turnLimit = 20;
+        turnLimit = 17;
 
         SetupLevel(1, 1);
 
@@ -55,7 +55,7 @@ public class IceLevel3 : LevelManager
 
 #pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
+    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
     {
         if (shouldCountMove)
         {

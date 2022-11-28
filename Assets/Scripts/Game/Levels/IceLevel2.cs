@@ -55,7 +55,7 @@ public class IceLevel2 : LevelManager
 
 #pragma warning restore IDE0051
 
-    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
+    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
     {
         if (shouldCountMove)
         {

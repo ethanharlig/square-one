@@ -102,7 +102,7 @@ public class WallLevel1 : LevelManager
         timesWallMoved++;
     }
 
-    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
+    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
     {
         if (shouldCountMove)
         {

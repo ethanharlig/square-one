@@ -8,6 +8,11 @@ public class IceTile : PaintTile
     public delegate void SteppedOnAction(Vector3Int direction);
     public event SteppedOnAction WhenSteppedOn;
 
+    public override bool WillMovePlayer()
+    {
+        return true;
+    }
+
     void OnPlayerMoveStart(Vector2Int playerPosition)
     {
         _beforeMovePosition = playerPosition;
@@ -57,13 +62,13 @@ public class IceTile : PaintTile
     void OnEnable()
     {
         PlayerController.OnMoveStart += OnPlayerMoveStart;
-        PlayerController.OnMoveFinish += OnPlayerMoveFinish;
+        PlayerController.OnSingleMoveFinish += OnPlayerMoveFinish;
     }
 
     void OnDisable()
     {
         PlayerController.OnMoveStart -= OnPlayerMoveStart;
-        PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
+        PlayerController.OnSingleMoveFinish -= OnPlayerMoveFinish;
     }
 #pragma warning restore IDE0051
 }

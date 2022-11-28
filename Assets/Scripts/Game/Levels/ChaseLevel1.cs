@@ -63,7 +63,7 @@ public class ChaseLevel1 : LevelManager
         obstacles.Add(obstacle);
     }
 
-    override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
+    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
     {
         // white tile color disables all moving obstacles
         if (gridController.TileColorAtLocation(playerPosition) == Color.white)

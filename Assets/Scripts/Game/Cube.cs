@@ -196,6 +196,11 @@ public class Cube
         }
     }
 
+    public void FinishMovingThenStopMovement()
+    {
+        queuedMovements.Clear();
+    }
+
     public void StopMoving()
     {
         Debug.Log("Clearing queue");

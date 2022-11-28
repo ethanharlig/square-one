@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using UnityEngine;
@@ -17,9 +16,16 @@ public class GridController : Singleton<GridController>
     private List<List<TileController>> gridRows;
     private Color startingColor;
     private GameObject _obstacleGameObject;
-    // TODO need to keep track of moving obstacles too
     private HashSet<Vector2Int> stationaryObstaclePositions = new();
+    // TODO need to keep track of moving obstacles too
     private OrderedDictionary movingObstaclePositionToControllerMap = new();
+
+    public bool TileWillMovePlayer(int x, int y)
+    {
+        TileController tile = TileAtLocation(x, y);
+
+        return tile != null && tile.WillMovePlayer();
+    }
 
     public void SetupGrid(int xSize, int ySize)
     {
@@ -135,6 +141,7 @@ public class GridController : Singleton<GridController>
         return obstacle;
     }
 
+    // todo just throw shit into a queue and process it there
     void AfterMovingObjectMoves(Vector3 beforeMovePosition3d)
     {
         Vector2Int beforeMovePosition = new(Mathf.RoundToInt(beforeMovePosition3d.x), Mathf.RoundToInt(beforeMovePosition3d.z));

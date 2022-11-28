@@ -10,9 +10,13 @@ public class PlayerController : Singleton<PlayerController>
     public delegate void MoveStartAction(Vector2Int positionBeforeMove);
     public static event MoveStartAction OnMoveStart;
 
+    // currentPosition here is after player moves one single movement. You probably want to use OnMoveFullyCompleted
+    public delegate void SingleMoveFinishAction(Vector2Int positionAfterMove, bool moveShouldCount);
+    public static event SingleMoveFinishAction OnSingleMoveFinish;
+
     // currentPosition here is after player moves
-    public delegate void MoveFinishAction(Vector2Int positionAfterMove, bool moveShouldCount);
-    public static event MoveFinishAction OnMoveFinish;
+    public delegate void MoveFullyCompletedAction(Vector2Int positionAfterMove, bool oneMoveInThereShouldCount);
+    public static event MoveFullyCompletedAction OnMoveFullyCompleted;
 
     private Vector3 originalPosition;
 
@@ -25,13 +29,18 @@ public class PlayerController : Singleton<PlayerController>
     private Vector2Int currentPosition;
     private bool _isMoving;
 
-    public void SpawnPlayer(int row, int col)
+    private Func<int, int, bool> tileAtLocationWillMovePlayer;
+    private bool forcedStopMoving = false;
+
+    public void SpawnPlayer(int row, int col, Func<int, int, bool> tileAtLocationWillMovePlayer)
     {
         originalPosition = new Vector3(row, 1.5f, col);
         transform.localPosition = originalPosition;
         moveCount = 0;
 
         playerInstanceGameObject = gameObject;
+
+        this.tileAtLocationWillMovePlayer = tileAtLocationWillMovePlayer;
 
         // defines roll speed and allows to roll. can pass through beforeMovePosition if we want it
         Cube = new(this, 4.4f, () => BeforeRollActions(), (moveCompleted, moveShouldCount, beforeMovePosition) => AfterRollActions(moveCompleted, moveShouldCount));
@@ -101,17 +110,43 @@ public class PlayerController : Singleton<PlayerController>
         _isMoving = true;
     }
 
+    bool anyMoveCompleted = false;
+    bool shouldAnyMoveBeCounted = false;
+
     void AfterRollActions(bool moveCompleted, bool shouldMoveBeCounted)
     {
         _isMoving = false;
 
-        currentPosition = GetRawCurrentPosition();
 
-        if (moveCompleted)
+        currentPosition = GetRawCurrentPosition();
+        OnSingleMoveFinish?.Invoke(currentPosition, moveCompleted && shouldMoveBeCounted);
+
+        anyMoveCompleted |= moveCompleted;
+        shouldAnyMoveBeCounted |= shouldMoveBeCounted;
+
+        // ((GridController)GridController.Instance).TileWillMovePlayer(.)
+
+        bool willTileMovePlayer = tileAtLocationWillMovePlayer.Invoke(currentPosition.x, currentPosition.y);
+        Debug.LogFormat("forcedStopMoving {0}, will tile move player {1}", forcedStopMoving, willTileMovePlayer);
+
+
+        if (!forcedStopMoving && willTileMovePlayer)
         {
-            if (shouldMoveBeCounted) moveCount++;
+            return;
         }
-        OnMoveFinish?.Invoke(currentPosition, moveCompleted && shouldMoveBeCounted);
+
+        Debug.LogFormat("anyMoveCompleted {0}, shouldAnyMoveBeCounted {1}", anyMoveCompleted, shouldAnyMoveBeCounted);
+
+        if (anyMoveCompleted && shouldAnyMoveBeCounted)
+        {
+            moveCount++;
+        }
+
+        OnMoveFullyCompleted?.Invoke(currentPosition, shouldAnyMoveBeCounted);
+
+        forcedStopMoving = false;
+        anyMoveCompleted = false;
+        shouldAnyMoveBeCounted = false;
     }
 
     /**
@@ -215,14 +250,14 @@ public class PlayerController : Singleton<PlayerController>
     public void ForceMoveInDirection(Vector3 direction)
     {
         StopCountingMoves();
-        OnMoveFinish += StartCountingMovesAndDeregisterOnMoveFinish;
+        OnSingleMoveFinish += StartCountingMovesAndDeregisterOnMoveFinish;
         Cube.MoveInDirectionIfNotMoving(direction, Cube.MoveType.SLIDE, false);
     }
 
     private void StartCountingMovesAndDeregisterOnMoveFinish(Vector2Int pos, bool _)
     {
         StartCountingMoves();
-        OnMoveFinish -= StartCountingMovesAndDeregisterOnMoveFinish;
+        OnSingleMoveFinish -= StartCountingMovesAndDeregisterOnMoveFinish;
     }
 
     private void StartCountingMoves()
@@ -230,15 +265,23 @@ public class PlayerController : Singleton<PlayerController>
         shouldCountMoves = true;
     }
 
+    public void FinishMovingThenStopMovement()
+    {
+        Cube.FinishMovingThenStopMovement();
+        forcedStopMoving = true;
+    }
+
     public void StopMoving()
     {
         Cube.StopMoving();
+        forcedStopMoving = true;
     }
 
     public void StartMoving()
     {
         _isMoving = false;
         Cube.StartMoving();
+        forcedStopMoving = false;
     }
 
     public float GetRollSpeed()

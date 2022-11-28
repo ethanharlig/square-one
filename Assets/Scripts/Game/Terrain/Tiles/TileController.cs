@@ -2,6 +2,12 @@ using UnityEngine;
 
 public class TileController : MonoBehaviour
 {
+
+    public virtual bool WillMovePlayer()
+    {
+        return false;
+    }
+
     public GameObject GetTile()
     {
         return gameObject;
