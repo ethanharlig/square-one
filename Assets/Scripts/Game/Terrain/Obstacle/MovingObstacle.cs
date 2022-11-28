@@ -266,5 +266,7 @@ public class MovingObstacle : ObstacleController
     {
         PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
     }
+
+    
 #pragma warning restore IDE0051
 }

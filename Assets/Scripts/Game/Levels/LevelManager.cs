@@ -100,7 +100,6 @@ public abstract class LevelManager : MonoBehaviour
     private void OnPlayerMoveFinish(Vector2Int playerPositionAfterMove, bool shouldCountMove)
     {
         OnPlayerMoveFinish(playerPositionAfterMove);
-        OnPlayerMoveFinishWithShouldCountMove(playerPositionAfterMove, shouldCountMove);
     }
 
 #pragma warning disable IDE0051

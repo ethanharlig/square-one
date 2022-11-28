@@ -10,6 +10,8 @@ public class SnakeController
 
     private HashSet<Vector2Int> paintedTiles;
 
+    Vector2Int lastPosition;
+
     public delegate void HitPaintedTileEvent(Vector2Int position);
     public event HitPaintedTileEvent OnPaintedTileHit;
 
@@ -19,13 +21,26 @@ public class SnakeController
         this.gridController = gridController;
 
         this.paintedTiles = new();
+        Debug.Log("Instantiating tiles again");
 
         PlayerController.OnMoveFinish += OnPlayerMoveFinish;
     }
 
+    public void Reset()
+    {
+        PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
+    }
+
     private void OnPlayerMoveFinish(Vector2Int playerPosition, bool shouldCountMove)
     {
-        // once level is done, can still use snake for fun
+        if (lastPosition.x == playerPosition.x && lastPosition.y == playerPosition.y)
+        {
+            // player hasn't moved
+            // TODO: find better solution for this, maybe in trigger?
+            return;
+        }
+
+        // check to see if we have already hit this tile
         if (paintedTiles.Contains(playerPosition))
         {
             if (OnPaintedTileHit != null)
@@ -38,6 +53,7 @@ public class SnakeController
         {
             gridController.PaintTileAtLocation(playerPosition, Color.red);
             paintedTiles.Add(playerPosition);
+            lastPosition = playerPosition;
         }
 
     }

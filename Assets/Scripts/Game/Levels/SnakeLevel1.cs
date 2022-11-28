@@ -10,7 +10,7 @@ public class SnakeLevel1 : LevelManager
     void Start()
     {
         gridSizeX = gridSizeY = 8;
-        turnLimit = 30;
+        turnLimit = 25;
 
         SetupLevel(5, 4);
 

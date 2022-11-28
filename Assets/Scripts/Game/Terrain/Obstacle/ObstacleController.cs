@@ -15,6 +15,7 @@ public class ObstacleController : MonoBehaviour
     {
         // no need for any before/after roll actions right now
         Cube = new(this, 1.0f, () => { }, (_, _, _) => { });
+        tag = "Obstacle";
     }
 #pragma warning restore IDE0051
 
@@ -26,6 +27,7 @@ public class ObstacleController : MonoBehaviour
     // TODO should be in moving obstacle?
     protected void OnTriggerEnter(Collider other)
     {
+        Debug.Log("Entering trigger");
         if (!PlayerController.IsColliderPlayer(other)) return;
 
         PlayerController playerController = other.GetComponent<PlayerController>();
@@ -35,6 +37,7 @@ public class ObstacleController : MonoBehaviour
 
     protected void OnTriggerExit(Collider other)
     {
+        Debug.Log("Exiting trigger");
         if (!PlayerController.IsColliderPlayer(other)) return;
 
         PlayerController playerController = other.GetComponent<PlayerController>();
