@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using UnityEngine;
 
 public class GridController : Singleton<GridController>
@@ -16,7 +17,9 @@ public class GridController : Singleton<GridController>
     private List<List<TileController>> gridRows;
     private Color startingColor;
     private GameObject _obstacleGameObject;
+    // TODO need to keep track of moving obstacles too
     private HashSet<Vector2Int> stationaryObstaclePositions = new();
+    private OrderedDictionary movingObstaclePositionToControllerMap = new();
 
     public void SetupGrid(int xSize, int ySize)
     {
@@ -118,6 +121,11 @@ public class GridController : Singleton<GridController>
         GameObject obj = Instantiate(obstaclePrefab, new Vector3Int(x, 1, y), Quaternion.identity);
         MovingObstacle obstacle = obj.AddComponent<MovingObstacle>();
         obstacle.SetName($"moving - row{x}col{y}");
+        obstacle.SetAfterRollAction((didFinishMove, _, beforeMovePosition) => AfterMovingObjectMoves(beforeMovePosition));
+        movingObstaclePositionToControllerMap.Add(obstacle.GetPositionAsVector2Int(), obstacle);
+
+        // moving obstacle should call function to update something with its location
+        // obstacle.SetLocationUpdaterFunction();
 
         obstacle.transform.parent = _obstacleGameObject.transform;
 
@@ -125,6 +133,30 @@ public class GridController : Singleton<GridController>
         obj.GetComponent<MeshRenderer>().material.color = Color.yellow;
 
         return obstacle;
+    }
+
+    void AfterMovingObjectMoves(Vector3 beforeMovePosition3d)
+    {
+        Vector2Int beforeMovePosition = new(Mathf.RoundToInt(beforeMovePosition3d.x), Mathf.RoundToInt(beforeMovePosition3d.z));
+        if (!movingObstaclePositionToControllerMap.Contains(beforeMovePosition))
+        {
+            Debug.LogWarningFormat("Didn't find this obstacle previously in this position {0}", beforeMovePosition);
+            return;
+        }
+        MovingObstacle obstacle = (MovingObstacle)movingObstaclePositionToControllerMap[beforeMovePosition];
+
+        if (!movingObstaclePositionToControllerMap.Contains(obstacle.GetPositionAsVector2Int()))
+        {
+            movingObstaclePositionToControllerMap.Remove(beforeMovePosition);
+            movingObstaclePositionToControllerMap.Add(obstacle.GetPositionAsVector2Int(), obstacle);
+            return;
+        }
+        else
+        {
+            // TODO if two move to the same square, they can both end up in this else block... how? 
+            Debug.LogFormat("Something is already here {0}, going back to old spot!", beforeMovePosition);
+            obstacle.UndoLastMove();
+        }
     }
 
     private HashSet<Vector2Int> GetCurrentStationaryObstacles()

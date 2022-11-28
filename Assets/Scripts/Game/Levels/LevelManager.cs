@@ -18,7 +18,6 @@ public abstract class LevelManager : MonoBehaviour
 
     protected Vector2Int squareOne;
     protected bool levelActive;
-    protected List<Vector2Int> waypoints;
 
     protected GameStateManager gsm;
 
@@ -74,7 +73,8 @@ public abstract class LevelManager : MonoBehaviour
     protected void SetTerminalGameState(GameObject textElementToEnable, float waitDelaySeconds)
     {
         levelActive = false;
-        playerController.StopCountingMoves();
+        playerController.EnterTerminalGameState();
+
         StartCoroutine(SetElementAfterDelay(textElementToEnable, waitDelaySeconds));
 
         static IEnumerator SetElementAfterDelay(GameObject element, float waitDelaySeconds)
@@ -110,6 +110,7 @@ public abstract class LevelManager : MonoBehaviour
         Debug.Log("Enabling player event");
         PlayerController.OnMoveStart += OnPlayerMoveStart;
         PlayerController.OnMoveFinish += OnPlayerMoveFinish;
+        PlayerController.OnMoveFinish += OnPlayerMoveFinishWithShouldCountMove;
     }
 
     // make sure to deregister at disable time
@@ -118,6 +119,7 @@ public abstract class LevelManager : MonoBehaviour
         Debug.Log("Disabling player event");
         PlayerController.OnMoveStart -= OnPlayerMoveStart;
         PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
+        PlayerController.OnMoveFinish -= OnPlayerMoveFinishWithShouldCountMove;
 
         gsm.OnStateChange -= OnStageChange;
     }
@@ -128,28 +130,16 @@ public abstract class LevelManager : MonoBehaviour
     }
 #pragma warning restore IDE0051
 
+    // TODO TODO TODO bug bug bug
     // TODO if player needs to step on multiple ice tiles which result in 0 moves remaining but a victory,
     // they actually only traverse the first tile before the game state is checked. need to rethink
     protected void OnIceTileSteppedOn(Vector3Int direction)
     {
+        // TODO ice should work when level inactive?
         if (levelActive)
         {
             Debug.LogFormat("Stepped on ice tile in this direction: {0}", direction);
             playerController.ForceMoveInDirection(direction);
-        }
-    }
-
-    protected void SpawnNextWaypoint(List<Vector2Int> waypoints)
-    {
-        if (waypoints.Count == 0)
-        {
-            // this should be part of the game state manager and will just switch the game state to success here!!
-            Debug.Log("no more waypoints to hit. player has won?");
-            return;
-        }
-        else
-        {
-            gridController.SpawnWaypoint(waypoints[0].x, waypoints[0].y, () => SpawnNextWaypoint(waypoints.GetRange(1, waypoints.Count - 1)));
         }
     }
 

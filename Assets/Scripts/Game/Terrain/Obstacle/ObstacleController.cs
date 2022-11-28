@@ -14,11 +14,11 @@ public class ObstacleController : MonoBehaviour
     private void Awake()
     {
         // no need for any before/after roll actions right now
-        Cube = new(this, 1.0f, () => { }, (_, _) => { });
+        Cube = new(this, 1.0f, () => { }, (_, _, _) => { });
     }
 #pragma warning restore IDE0051
 
-    protected Vector2Int GetPositionAsVector2Int()
+    public Vector2Int GetPositionAsVector2Int()
     {
         return Vector2Int.RoundToInt(new Vector2(transform.position.x, transform.position.z));
     }

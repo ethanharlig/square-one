@@ -3,6 +3,11 @@ SquareOne
  
 SquareOne is an isometric puzzle game built for the [2022 Game Off](https://itch.io/jam/game-off-2022).
 
+Want to play? Head over to [Releases](/Releases/) and downloaded the latest release. Just unzip the file and run the SquareOne executable.
+
+------------
+
+ 
 - [SquareOne](#squareone)
 - [Demo](#demo)
 - [Ideas](#ideas)
@@ -30,11 +35,12 @@ Here's what it looks like in its current state
 
 Should consider accessibility and write letters or some symbol on tiles to differentiate. 
 
-- [ ] Full ice map with obstacles that stop you from sliding
-- [ ] Maze with stationary obstacles
+- [ ] Basic level or two that introduce concepts with little popups as you hit waypoints
+- [x] Full ice map with obstacles that stop you from sliding
+- [x] Maze with stationary obstacles
 - [ ] Maze with moving obstacles
 - [ ] Bigger wall moving level that continues to move towards you
-- [ ] Different all ice puzzles, or mostly ice
+- [x] Different all ice puzzles, or mostly ice
 - [ ] enemy is blocked away from you and moving it like in x direction causes it to eventually come closer in y direction
 
 ## Mechanic ideas

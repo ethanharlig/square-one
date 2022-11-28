@@ -10,6 +10,7 @@ public class ChaseLevel1 : LevelManager
 #pragma warning disable IDE0051
     void Start()
     {
+#pragma warning restore IDE0051
         gridSizeX = gridSizeY = 11;
         turnLimit = 70;
 
@@ -35,10 +36,32 @@ public class ChaseLevel1 : LevelManager
         obstacle.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction(), false);
         gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
 
+        // TODO I want to add ice but not sure how to not make it too easy
+        // for (int x = 0; x < gridSizeX; x++)
+        // {
+        //     if (x == 0 || x == gridSizeX - 1)
+        //     {
+        //         for (int y = 2; y < gridSizeY - 2; y++)
+        //         {
+        //             gridController.SpawnIceTile(x, y, OnIceTileSteppedOn);
+        //         }
+        //     }
+        // }
+
+        // for (int y = 0; y < gridSizeY; y++)
+        // {
+        //     if (y == 0 || y == gridSizeY - 1)
+        //     {
+        //         for (int x = 2; x < gridSizeY - 2; x++)
+        //         {
+        //             gridController.SpawnIceTile(x, y, OnIceTileSteppedOn);
+        //         }
+        //     }
+        // }
+
+
         obstacles.Add(obstacle);
     }
-
-#pragma warning restore IDE0051
 
     override protected void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPosition, bool shouldCountMove)
     {

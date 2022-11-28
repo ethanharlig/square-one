@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-// TODO should have a non-aggressive moving obstacle which doesn't shove player
 public class MovingObstacle : ObstacleController
 {
     private enum MoveDirection
@@ -13,6 +12,7 @@ public class MovingObstacle : ObstacleController
     }
 
     private bool _isPatrolling;
+    private bool _moveTowardsPlayer = false;
     private Func<HashSet<Vector2Int>> getCurrentStationaryObstacles;
     private bool aggressive = true;
 
@@ -106,7 +106,17 @@ public class MovingObstacle : ObstacleController
         Cube.SetRollSpeed(playerController.GetRollSpeed());
         _moveTowardsPlayer = true;
         getCurrentStationaryObstacles = getCurrentStationaryObstaclesAction;
+        SetAggressive(aggressive);
+    }
+
+    private void SetAggressive(bool aggressive)
+    {
         this.aggressive = aggressive;
+        if (aggressive)
+        {
+            // red cubes will mess you up
+            GetComponent<MeshRenderer>().material.color = Color.red;
+        }
     }
 
     // TODO is this only applicable for _moveTowardsPlayer?
@@ -115,7 +125,7 @@ public class MovingObstacle : ObstacleController
         _moveTowardsPlayer = false;
     }
 
-    public void SetAfterRollAction(Action<bool, bool> afterRoll)
+    public void SetAfterRollAction(Action<bool, bool, Vector3> afterRoll)
     {
         Cube.SetAfterRollAction(afterRoll);
     }
@@ -209,7 +219,6 @@ public class MovingObstacle : ObstacleController
 
     private void MoveInNextDirectionIfNoBlocker(Vector2Int curPosition, Queue<Vector3> directions, HashSet<Vector2Int> currentStationaryObstacles, Vector2Int? playerPosition)
     {
-        Debug.Log("Check if we have a direction to go");
         // not possible to try other way to move now
         if (0 == directions.Count) return;
 
@@ -217,7 +226,6 @@ public class MovingObstacle : ObstacleController
         Vector3 desiredPosition3d = new Vector3Int(curPosition.x, 0, curPosition.y) + thisDir;
         Vector2Int desiredPosition = new(Mathf.RoundToInt(desiredPosition3d.x), Mathf.RoundToInt(desiredPosition3d.z));
 
-        Debug.LogFormat("Checking if we can move in this direction {0} at this position {1} with this desired pos {2}", thisDir, curPosition, desiredPosition);
         if (IsStationaryObstacleInWay(desiredPosition.x, desiredPosition.y, currentStationaryObstacles))
         {
             MoveInNextDirectionIfNoBlocker(curPosition, directions, currentStationaryObstacles, playerPosition);
@@ -231,7 +239,10 @@ public class MovingObstacle : ObstacleController
         }
     }
 
-
+    public void UndoLastMove()
+    {
+        Cube.UndoLastMove();
+    }
 
     private void OnPlayerMoveFinish(Vector2Int playerPosition, bool moveShouldCount)
     {
@@ -256,6 +267,4 @@ public class MovingObstacle : ObstacleController
         PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
     }
 #pragma warning restore IDE0051
-
-    private bool _moveTowardsPlayer = false;
 }

@@ -14,7 +14,7 @@ public class CameraController : Singleton<CameraController>
     void Start()
     {
         // NEED to set this otherwise framerate is uncapped
-        Application.targetFrameRate = 144;
+        Application.targetFrameRate = 100;
     }
 
     // OnRotate comes from the InputActions action defined Rotate

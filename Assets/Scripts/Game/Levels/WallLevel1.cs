@@ -38,7 +38,7 @@ public class WallLevel1 : LevelManager
             obstacles.Add(gridController.AddMovingObstacleAtPosition(1, ndx));
         }
 
-        obstacles[^1].SetAfterRollAction((_, _) => AfterObjectMoves());
+        obstacles[^1].SetAfterRollAction((_, _, _) => AfterObjectMoves());
     }
 
 #pragma warning restore IDE0051

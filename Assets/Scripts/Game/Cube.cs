@@ -20,12 +20,14 @@ public class Cube
     }
 
     private readonly Action _beforeRoll;
-    private Action<bool, bool> _afterRoll;
+    private Action<bool, bool, Vector3> _afterRoll;
     private readonly Queue<Tuple<Vector3, MoveType, bool>> queuedMovements;
 
     private bool circuitBreakMovement = false;
+    private Vector3 lastPositionMoved;
+    private MoveType lastMoveType;
 
-    public Cube(MonoBehaviour mb, float rollSpeed, Action beforeRoll, Action<bool, bool> afterRoll)
+    public Cube(MonoBehaviour mb, float rollSpeed, Action beforeRoll, Action<bool, bool, Vector3> afterRoll)
     {
         _mb = mb;
         _rollSpeed = rollSpeed;
@@ -44,7 +46,7 @@ public class Cube
         SLIDE
     }
 
-    public void SetAfterRollAction(Action<bool, bool> afterRoll)
+    public void SetAfterRollAction(Action<bool, bool, Vector3> afterRoll)
     {
         _afterRoll = afterRoll;
     }
@@ -95,6 +97,9 @@ public class Cube
         circuitBreakMovement = false;
         _beforeRoll.Invoke();
 
+        lastPositionMoved = dir;
+        lastMoveType = moveType;
+
         if (rb == null)
         {
             rb = _mb.gameObject.GetComponent<Rigidbody>();
@@ -119,7 +124,7 @@ public class Cube
 
     IEnumerator Slide(Vector3 dir, bool moveShouldCount)
     {
-        Vector3 currentPos = _mb.gameObject.transform.position;
+        Vector3 beforeMovePos = _mb.gameObject.transform.position;
         Vector3 targetPos = _mb.gameObject.transform.position + dir;
 
         bool finishedMove = true;
@@ -128,17 +133,20 @@ public class Cube
         {
             if (circuitBreakMovement) { finishedMove = false; break; };
 
-            _mb.gameObject.transform.position = Vector3.Lerp(currentPos, targetPos, 1.0f / numSteps * i);
+            _mb.gameObject.transform.position = Vector3.Lerp(beforeMovePos, targetPos, 1.0f / numSteps * i);
             yield return null;
         }
-        FinishMovement(finishedMove, moveShouldCount);
+        FinishMovement(finishedMove, moveShouldCount, beforeMovePos);
     }
 
     IEnumerator Roll(Vector3 anchor, Vector3 axis, float rotationRemaining, bool moveShouldCount)
     {
+        Vector3 beforeMovePos = _mb.gameObject.transform.position;
+
         bool finishedMove = true;
         for (var i = 0; i < 90 / _rollSpeed; i++)
         {
+            // TODO could use circuit breaker to stop movement when you hit like a wall
             if (circuitBreakMovement) { finishedMove = false; break; };
 
             float rotationAngle = Mathf.Min(_rollSpeed, rotationRemaining);
@@ -146,10 +154,10 @@ public class Cube
             rotationRemaining -= _rollSpeed;
             yield return null;
         }
-        FinishMovement(finishedMove, moveShouldCount);
+        FinishMovement(finishedMove, moveShouldCount, beforeMovePos);
     }
 
-    private void FinishMovement(bool didFinishMove, bool moveShouldCount)
+    private void FinishMovement(bool didFinishMove, bool moveShouldCount, Vector3 beforeMovePosition)
     {
         Vector3 pos = _mb.gameObject.transform.position;
         _mb.gameObject.transform.localPosition = Vector3Int.RoundToInt(pos);
@@ -159,7 +167,7 @@ public class Cube
         _isMoving = false;
         circuitBreakMovement = false;
 
-        _afterRoll?.Invoke(didFinishMove, moveShouldCount);
+        _afterRoll?.Invoke(didFinishMove, moveShouldCount, beforeMovePosition);
 
         DoQueuedRotation();
     }
@@ -200,5 +208,31 @@ public class Cube
     {
         Debug.Log("Starting moving");
         circuitBreakMovement = false;
+    }
+
+    public void UndoLastMove()
+    {
+        if (lastPositionMoved == null)
+        {
+            Debug.LogWarning("No last move to undo!");
+            return;
+        }
+
+        if (lastPositionMoved == Vector3.left)
+        {
+            MoveInDirectionIfNotMoving(Vector3.right, lastMoveType, false);
+        }
+        else if (lastPositionMoved == Vector3.forward)
+        {
+            MoveInDirectionIfNotMoving(Vector3.back, lastMoveType, false);
+        }
+        else if (lastPositionMoved == Vector3.back)
+        {
+            MoveInDirectionIfNotMoving(Vector3.forward, lastMoveType, false);
+        }
+        else if (lastPositionMoved == Vector3.right)
+        {
+            MoveInDirectionIfNotMoving(Vector3.left, lastMoveType, false);
+        }
     }
 }

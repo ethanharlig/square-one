@@ -16,6 +16,7 @@ public class PlayerController : Singleton<PlayerController>
 
     private Vector3 originalPosition;
 
+    private bool inTerminalGameState = false;
     private bool shouldCountMoves = true;
     private int moveCount;
     private GameObject playerInstanceGameObject;
@@ -32,8 +33,8 @@ public class PlayerController : Singleton<PlayerController>
 
         playerInstanceGameObject = gameObject;
 
-        // defines roll speed and allows to roll
-        Cube = new(this, 4.4f, () => BeforeRollActions(), (moveCompleted, moveShouldCount) => AfterRollActions(moveCompleted, moveShouldCount));
+        // defines roll speed and allows to roll. can pass through beforeMovePosition if we want it
+        Cube = new(this, 4.4f, () => BeforeRollActions(), (moveCompleted, moveShouldCount, beforeMovePosition) => AfterRollActions(moveCompleted, moveShouldCount));
         currentPosition = GetRawCurrentPosition();
         CameraController.OnCameraRotate += TrackCameraLocation;
     }
@@ -57,7 +58,7 @@ public class PlayerController : Singleton<PlayerController>
         int movementY = Mathf.RoundToInt(movementVector.y);
 
         Vector3Int relativeMoveDirection = GetRelativeMoveDirectionWithCameraOffset(movementX, movementY);
-        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, shouldCountMoves);
+        Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, shouldCountMoves && !inTerminalGameState);
 
         // TODO player can float by constant input, how to disallow? prev solution below
 
@@ -102,7 +103,6 @@ public class PlayerController : Singleton<PlayerController>
 
     void AfterRollActions(bool moveCompleted, bool shouldMoveBeCounted)
     {
-
         _isMoving = false;
 
         currentPosition = GetRawCurrentPosition();
@@ -111,7 +111,7 @@ public class PlayerController : Singleton<PlayerController>
         {
             if (shouldMoveBeCounted) moveCount++;
         }
-        OnMoveFinish?.Invoke(currentPosition, shouldMoveBeCounted);
+        OnMoveFinish?.Invoke(currentPosition, moveCompleted && shouldMoveBeCounted);
     }
 
     /**
@@ -170,6 +170,11 @@ public class PlayerController : Singleton<PlayerController>
     public void StopCountingMoves()
     {
         shouldCountMoves = false;
+    }
+
+    public void EnterTerminalGameState()
+    {
+        inTerminalGameState = true;
     }
 
     /**

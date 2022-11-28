@@ -19,7 +19,6 @@ public class IceTile : PaintTile
 
         if (playerPosition == _beforeMovePosition)
         {
-            Debug.Log("Player didn't move, don't re-trigger action");
             return;
         }
 
