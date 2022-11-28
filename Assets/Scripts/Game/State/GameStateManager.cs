@@ -158,6 +158,11 @@ public class GameStateManager
         }
     }
 
+    public void SetFailedState()
+    {
+        TransitionState(GameState.FAILED);
+    }
+
 
     public void ManageGameState()
     {
