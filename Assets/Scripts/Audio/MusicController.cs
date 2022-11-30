@@ -4,9 +4,23 @@ public class MusicController : MonoBehaviour
 {
     private AudioSource _audioSource;
 
+    public static MusicController Instance { get; private set; }
+
     void Awake()
     {
-        DontDestroyOnLoad(transform.gameObject);
+        // If there is an instance and it's not me, delete myself.
+        Debug.LogFormat("Spawning instance of {0}", GetType().ToString());
+
+        if (Instance != null && Instance != this)
+        {
+            Debug.LogFormat("destroy {0}", GetType().ToString());
+            Destroy(this.gameObject);
+        }
+        else
+        {
+            Instance = this;
+            DontDestroyOnLoad(this.gameObject);
+        }
 
         _audioSource = GetComponent<AudioSource>();
     }

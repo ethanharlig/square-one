@@ -11,6 +11,7 @@ public class WaypointController : MonoBehaviour
         if (!PlayerController.IsColliderPlayer(other)) return;
         gameObject.SetActive(false);
 
+        AudioController.Instance.PlayWaypointAudio();
         OnTriggered?.Invoke();
     }
 #pragma warning restore IDE0051

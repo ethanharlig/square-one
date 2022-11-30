@@ -15,7 +15,6 @@ public class ObstacleController : MonoBehaviour
     {
         // no need for any before/after roll actions right now
         Cube = new(this, 1.0f, () => { }, (_, _, _) => { });
-        tag = "Obstacle";
     }
 #pragma warning restore IDE0051
 
