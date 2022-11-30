@@ -17,14 +17,14 @@ public class MazeLevel1 : LevelManager
 
         SetupLevel(2, 4);
 
-        Vector2Int[] waypointsInOrder = new[] {
-            new Vector2Int(10, 7),
-            new Vector2Int(9, 3),
-            new Vector2Int(3, 10),
-            new Vector2Int(squareOne.x, squareOne.y)
+        Waypoint[] waypointsInOrder = new[] {
+            Waypoint.Of(10, 7),
+            Waypoint.Of(9, 3),
+            Waypoint.Of(3, 10),
+            Waypoint.Of(squareOne.x, squareOne.y)
         };
 
-        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetWaypoints(waypointsInOrder);
         gsm.SetTurnLimit(turnLimit);
 
         gsm.ManageGameState();

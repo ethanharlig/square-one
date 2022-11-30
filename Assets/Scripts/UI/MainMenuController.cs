@@ -3,13 +3,12 @@ using UnityEngine.SceneManagement;
 
 public class MainMenuController : MonoBehaviour
 {
-    // ensure this is properly set otherwise the play button won't work!
-    public int gameLevelBuildIndex;
+    public static readonly int MenuSceneIndex = 2;
 
     public void PlayGame()
     {
-        Debug.LogFormat("If play button is not working, is this the correct game level build index: {0}!", gameLevelBuildIndex);
-        SceneManager.LoadScene(gameLevelBuildIndex);
+        Debug.LogFormat("If play button is not working, is the first level right after menu?");
+        LevelTransitioner.NextLevel();
     }
 
     public void QuitGame()

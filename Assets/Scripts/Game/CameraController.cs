@@ -17,15 +17,33 @@ public class CameraController : Singleton<CameraController>
         Application.targetFrameRate = 100;
     }
 
+    // this is handling raw input for ideally only webGL
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            TryRotate(1.0f);
+        }
+        else if (Input.GetKeyDown(KeyCode.Q))
+        {
+            TryRotate(-1.0f);
+        }
+    }
+
     // OnRotate comes from the InputActions action defined Rotate
     void OnRotate(InputValue movementValue)
+    {
+
+        float moveDirection = movementValue.Get<float>();
+        TryRotate(moveDirection);
+    }
+    void TryRotate(float moveDirection)
     {
         if (_isRotating)
         {
             return;
         }
 
-        float moveDirection = movementValue.Get<float>();
         Vector2Int relativeMoveDirection;
 
         if (moveDirection > 0)

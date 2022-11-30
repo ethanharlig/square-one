@@ -244,7 +244,7 @@ public class MovingObstacle : ObstacleController
         Cube.UndoLastMove();
     }
 
-    private void OnPlayerMoveFinish(Vector2Int playerPosition, bool moveShouldCount)
+    private void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool moveShouldCount)
     {
         // TODO this triggers when player moves into wall
         if (_moveTowardsPlayer && moveShouldCount)
@@ -258,14 +258,14 @@ public class MovingObstacle : ObstacleController
     // must be done at object enable time
     private void OnEnable()
     {
-        PlayerController.OnMoveFullyCompleted += OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted += OnPlayerMoveFullyCompleted;
 
     }
 
     // make sure to deregister at disable time
     private void OnDisable()
     {
-        PlayerController.OnMoveFullyCompleted -= OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted -= OnPlayerMoveFullyCompleted;
     }
 
     

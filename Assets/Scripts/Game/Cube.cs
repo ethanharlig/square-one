@@ -174,8 +174,11 @@ public class Cube
 
     public void ResetPhysics()
     {
-        rb.velocity = Vector3.zero;
-        rb.angularVelocity = Vector3.zero;
+        if (rb)
+        {
+            rb.velocity = Vector3.zero;
+            rb.angularVelocity = Vector3.zero;
+        }
         RotateToNearestRightAngles();
 
         void RotateToNearestRightAngles()

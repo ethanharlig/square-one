@@ -17,20 +17,32 @@ public class WallLevel1 : LevelManager
 
         SetupLevel(2, 3);
 
-        Vector2Int[] waypointsInOrder = new[] {
-            new Vector2Int(gridSizeX - 1, gridSizeY - 2),
-            new Vector2Int(gridSizeX - 2, gridSizeY - 1),
-            new Vector2Int(squareOne.x, squareOne.y)
+        Waypoint[] waypointPositionsInOrder = new[] {
+            Waypoint.Of(gridSizeX - 1, gridSizeY - 2)
+            .WithOnTriggeredAction(() => {
+                int desiredObjectMoveCount = timesWallMoved + 2;
+                StartCoroutine(WaitForObjectToMove(desiredObjectMoveCount, () => MoveObstacles(Vector3.right), () => {
+                    gsm.SpawnNextWaypoint();
+                    gsm.SpawnNextWaypoint();
+                }));
+            }),
+            Waypoint.Of(gridSizeX - 2, gridSizeY - 1)
+            .WithOnTriggeredAction(() => {
+                gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 2, OnIceTileSteppedOn);
+                gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 3, OnIceTileSteppedOn);
+                gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 4, OnIceTileSteppedOn);
+            })
+            // TODO wanna make this smaller so we it's hidden before you have to rotate right
+            .WithOptions(Waypoint.WaypointOptions.Of(0.2f, Color.cyan)),
+            Waypoint.Of(squareOne.x, squareOne.y)
         };
 
-        // setup GSM and make sure to turn off autospawn so we can control
-        gsm.SetWaypoints(waypointsInOrder, false);
+        gsm.SetWaypoints(waypointPositionsInOrder);
         gsm.SetTurnLimit(turnLimit);
-        gsm.OnWaypointHit += OnWaypointHit;
 
         gsm.ManageGameState();
 
-        gsm.SpawnNextWaypoint();
+        // TODO add more ice that's visible before rotate, and another waypoint that makes player go further
 
         obstacles = new();
         for (int ndx = 0; ndx < gridSizeY; ndx++)
@@ -43,35 +55,11 @@ public class WallLevel1 : LevelManager
 
 #pragma warning restore IDE0051
 
-    // must implement since we don't want the GSM to auto manage the waypoints
-    void OnWaypointHit(int waypoint, Vector2Int pos)
-    {
-        if (waypoint == 0)
-        {
-            // if we hit the first waypoint, move the wall tiles
-            int desiredObjectMoveCount = timesWallMoved + 2;
-            StartCoroutine(WaitForObjectToMove(desiredObjectMoveCount, () => MoveObstacles(Vector3.right), () => gsm.SpawnNextWaypoint()));
-        }
-        else if (waypoint == 1)
-        {
-            gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 2, OnIceTileSteppedOn);
-            gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 3, OnIceTileSteppedOn);
-            gridController.SpawnIceTile(gridSizeX - 2, gridSizeY - 4, OnIceTileSteppedOn);
-            gsm.SpawnNextWaypoint();
-        }
-        else
-        {
-            gsm.SpawnNextWaypoint();
-        }
-    }
-
-
     /**
     Allow wall to move until it hits the desired number of times moved
     */
     IEnumerator WaitForObjectToMove(int desiredAfterMoveCount, Action doMove, Action afterObjectMoveAction)
     {
-        Debug.LogFormat("I want to get to {0} but I'm only at {1}", desiredAfterMoveCount, timesWallMoved);
         doMove?.Invoke();
         int currentTimesWallMoved = timesWallMoved;
         // this loop and the break condition are kinda weird but they seem to work
@@ -79,7 +67,6 @@ public class WallLevel1 : LevelManager
         {
             if (currentTimesWallMoved != timesWallMoved)
             {
-                Debug.Log("The wall has moved once according to the waiter");
                 // let it progress
                 currentTimesWallMoved = timesWallMoved;
 
@@ -98,7 +85,6 @@ public class WallLevel1 : LevelManager
 
     void AfterObjectMoves()
     {
-        Debug.Log("Object has moved");
         timesWallMoved++;
     }
 

@@ -16,14 +16,14 @@ public class ChaseLevel1 : LevelManager
 
         SetupLevel(gridSizeX / 2 + 4, gridSizeY / 2);
 
-        Vector2Int[] waypointsInOrder = new[] {
-            new Vector2Int(9, 9),
-            new Vector2Int(0, 0),
-            new Vector2Int(4, gridSizeY - 1),
-            new Vector2Int(squareOne.x, squareOne.y)
+        Waypoint[] waypointsInOrder = new[] {
+            Waypoint.Of(9, 9),
+            Waypoint.Of(0, 0),
+            Waypoint.Of(4, gridSizeY - 1),
+            Waypoint.Of(squareOne.x, squareOne.y)
         };
 
-        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetWaypoints(waypointsInOrder);
         gsm.SetTurnLimit(turnLimit);
 
         gsm.ManageGameState();

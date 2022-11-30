@@ -16,14 +16,14 @@ public class IceChaseLevel3 : LevelManager
         // TODO should rotate camera?
         // TODO should rely on moving the obstacle around so you can hit it as a stopper
 
-        Vector2Int[] waypointsInOrder = new[] {
-            new Vector2Int(gridSizeX - 2, 1),
-            new Vector2Int(1, 4),
-            new Vector2Int(squareOne.x, squareOne.y),
+        Waypoint[] waypointsInOrder = new[] {
+            Waypoint.Of(gridSizeX - 2, 1),
+            Waypoint.Of(1, 4),
+            Waypoint.Of(squareOne.x, squareOne.y),
         };
 
 
-        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetWaypoints(waypointsInOrder);
         gsm.SetTurnLimit(turnLimit);
         gsm.ManageGameState();
 

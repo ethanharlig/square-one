@@ -9,7 +9,7 @@ public class ChaseLevel2 : LevelManager
     {
 #pragma warning restore IDE0051
         gridSizeX = gridSizeY = 13;
-        turnLimit = 40;
+        turnLimit = 90;
 
         SetupLevel(1, 1);
 
@@ -34,13 +34,13 @@ public class ChaseLevel2 : LevelManager
         gridController.AddStationaryObstacleAtPosition(3, 3);
         gridController.AddStationaryObstacleAtPosition(3, 4);
 
-        Vector2Int[] waypointsInOrder = new[] {
-            new Vector2Int(gridSizeX - 1, gridSizeY - 5),
-            new Vector2Int(gridSizeX - 1, 2),
-            new Vector2Int(squareOne.x, squareOne.y),
+        Waypoint[] waypointsInOrder = new[] {
+            Waypoint.Of(gridSizeX - 1, gridSizeY - 5),
+            Waypoint.Of(gridSizeX - 1, 2),
+            Waypoint.Of(squareOne.x, squareOne.y),
         };
 
-        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetWaypoints(waypointsInOrder);
         gsm.SetTurnLimit(turnLimit);
 
         gsm.ManageGameState();

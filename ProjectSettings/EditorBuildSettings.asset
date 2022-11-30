@@ -6,11 +6,17 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/UI/Title.unity
+    path: Assets/Scenes/UI/World Oyster.unity
+    guid: 2dc7e7080fe6e2c44a6e6721cbb4c27b
+  - enabled: 1
+    path: Assets/Scenes/UI/Static Title.unity
     guid: fb5b6646a25260641b2eca2b82d48436
   - enabled: 1
     path: Assets/Scenes/UI/Menu.unity
     guid: 98a16762d9446664183ded829c2a6d7a
+  - enabled: 1
+    path: Assets/Scenes/Game/Intro Level 1.unity
+    guid: 37268d979061fde49a4ba30b24486230
   - enabled: 1
     path: Assets/Scenes/Game/Ice Level 1.unity
     guid: 96860e84b0552764ab75b8ad44ac70e4
@@ -20,6 +26,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game/Ice Level 3.unity
     guid: 7a36020dc44bf9442a827666b56cda33
+  - enabled: 1
+    path: Assets/Scenes/Game/Ice Level 4.unity
+    guid: b2247697597610b429fff255f9376e74
   - enabled: 1
     path: Assets/Scenes/Game/Ice Chase Level 3.unity
     guid: ae6449ba88c197b4b95047a15ac21efe
@@ -35,6 +44,9 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/Game/Maze Level 1.unity
     guid: bba2071eab2e6b941a250aa59e698f03
+  - enabled: 1
+    path: Assets/Scenes/Game/Ice Level 5.unity
+    guid: 38397bdc30235f84bb20e4e69a6a0c4a
   - enabled: 1
     path: Assets/Scenes/UI/Game End.unity
     guid: 30c72ad4c38e83f4abd66b258144b6d5

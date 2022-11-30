@@ -40,7 +40,7 @@ public class LevelTwoManager : LevelManager
         // win by making it to no turns I guess
         if (turnsLeft == 0)
         {
-            SetTerminalGameState(successElements);
+            SetTerminalGameState(levelUIElements.GetSuccessElements());
         }
 
         CheckFailureAndPaintTile(playerPos);
@@ -54,12 +54,12 @@ public class LevelTwoManager : LevelManager
         if (tile == null)
         {
             Debug.Log("Out of map bounds");
-            SetTerminalGameState(failedElements, 0f);
+            SetTerminalGameState(levelUIElements.GetFailedElements(), 0f);
         }
         else if (HasTile(tile))
         {
             Debug.Log("Hit already painted tile");
-            SetTerminalGameState(failedElements, 0f);
+            SetTerminalGameState(levelUIElements.GetFailedElements(), 0f);
         }
         else
         {

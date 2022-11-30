@@ -1,18 +1,13 @@
 using System.Collections;
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 
 public abstract class LevelManager : MonoBehaviour
 {
-    [SerializeField] protected GridController gridController;
-    [SerializeField] protected PlayerController playerController;
-    [SerializeField] protected CameraController cameraController;
-
-    [SerializeField] protected TextMeshProUGUI moveCountText;
-
-    [SerializeField] protected GameObject successElements;
-    [SerializeField] protected GameObject failedElements;
+    protected GridController gridController;
+    protected PlayerController playerController;
+    protected CameraController cameraController;
+    protected LevelUIElements levelUIElements;
 
     protected int gridSizeX, gridSizeY, turnLimit, turnsLeft;
 
@@ -34,6 +29,7 @@ public abstract class LevelManager : MonoBehaviour
         playerController = (PlayerController)PlayerController.Instance;
         gridController = (GridController)GridController.Instance;
         cameraController = (CameraController)CameraController.Instance;
+        levelUIElements = (LevelUIElements)LevelUIElements.Instance;
 
         gridController.SetupGrid(gridSizeX, gridSizeY);
 
@@ -86,7 +82,11 @@ public abstract class LevelManager : MonoBehaviour
 
     protected void SetMoveCountText()
     {
-        moveCountText.text = $"Turns remaining: {turnsLeft}";
+        if (gsm != null && gsm.TurnLimitEnabled)
+        {
+            levelUIElements.EnableMoveCountText();
+            levelUIElements.SetMoveCountText($"Turns remaining: {turnsLeft}");
+        }
     }
 
     // handle player movement. override in child classes if they want to access these events
@@ -141,7 +141,6 @@ public abstract class LevelManager : MonoBehaviour
         // TODO ice should work when level inactive?
         if (levelActive)
         {
-            Debug.LogFormat("Stepped on ice tile in this direction: {0}", direction);
             playerController.ForceMoveInDirection(direction);
         }
     }
@@ -150,11 +149,11 @@ public abstract class LevelManager : MonoBehaviour
     {
         if (state == GameStateManager.GameState.FAILED)
         {
-            SetTerminalGameState(failedElements);
+            SetTerminalGameState(levelUIElements.GetFailedElements());
         }
         else if (state == GameStateManager.GameState.SUCCESS)
         {
-            SetTerminalGameState(successElements);
+            SetTerminalGameState(levelUIElements.GetSuccessElements());
         }
     }
 }

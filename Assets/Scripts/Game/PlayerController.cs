@@ -54,17 +54,43 @@ public class PlayerController : Singleton<PlayerController>
         CameraController.OnCameraRotate -= TrackCameraLocation;
     }
 
+    // this is handling raw input for ideally only webGL
+    void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        {
+            TryMove(new Vector2Int(0, 1));
+        }
+        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+        {
+            TryMove(new Vector2Int(-1, 0));
+        }
+        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+        {
+            TryMove(new Vector2Int(0, -1));
+        }
+        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+        {
+            TryMove(new Vector2Int(1, 0));
+        }
+    }
+
     // OnMove comes from the InputActions action defined Move
     void OnMove(InputValue movementValue)
     {
-        if (_isMoving) return;
 
         Vector2 movementVector = movementValue.Get<Vector2>();
+        TryMove(movementVector);
+    }
 
+    void TryMove(Vector2 movementVector)
+    {
         if (Mathf.Abs(movementVector.x) != 1.0f && Mathf.Abs(movementVector.y) != 1.0f) return;
 
         int movementX = Mathf.RoundToInt(movementVector.x);
         int movementY = Mathf.RoundToInt(movementVector.y);
+
+        if (_isMoving || forcedStopMoving) return;
 
         Vector3Int relativeMoveDirection = GetRelativeMoveDirectionWithCameraOffset(movementX, movementY);
         Cube.MoveInDirectionIfNotMoving(relativeMoveDirection, Cube.MoveType.ROLL, shouldCountMoves && !inTerminalGameState);
@@ -117,7 +143,6 @@ public class PlayerController : Singleton<PlayerController>
     {
         _isMoving = false;
 
-
         currentPosition = GetRawCurrentPosition();
         OnSingleMoveFinish?.Invoke(currentPosition, moveCompleted && shouldMoveBeCounted);
 
@@ -127,22 +152,20 @@ public class PlayerController : Singleton<PlayerController>
         // ((GridController)GridController.Instance).TileWillMovePlayer(.)
 
         bool willTileMovePlayer = tileAtLocationWillMovePlayer.Invoke(currentPosition.x, currentPosition.y);
-        Debug.LogFormat("forcedStopMoving {0}, will tile move player {1}", forcedStopMoving, willTileMovePlayer);
-
 
         if (!forcedStopMoving && willTileMovePlayer)
         {
             return;
         }
 
-        Debug.LogFormat("anyMoveCompleted {0}, shouldAnyMoveBeCounted {1}", anyMoveCompleted, shouldAnyMoveBeCounted);
+        bool moveHappenedAndShouldBeCount = anyMoveCompleted && shouldAnyMoveBeCounted;
 
-        if (anyMoveCompleted && shouldAnyMoveBeCounted)
+        if (moveHappenedAndShouldBeCount)
         {
             moveCount++;
         }
 
-        OnMoveFullyCompleted?.Invoke(currentPosition, shouldAnyMoveBeCounted);
+        OnMoveFullyCompleted?.Invoke(currentPosition, moveHappenedAndShouldBeCount);
 
         forcedStopMoving = false;
         anyMoveCompleted = false;
@@ -213,7 +236,7 @@ public class PlayerController : Singleton<PlayerController>
     }
 
     /**
-        Get player's location taking into account roll animation. This position only updates once a roll animation completes.
+        Get player's location taking into account move animation. This position only updates once a move animation completes.
     */
     public Vector2Int GetCurrentPosition()
     {
@@ -304,5 +327,14 @@ public class PlayerController : Singleton<PlayerController>
             return false;
         }
         return true;
+    }
+
+    public IEnumerator StopMovementThenStartMovement(float delayBeforeStartMovementSeconds, Action afterStopCallback, Action beforeStartCallback)
+    {
+        StopMoving();
+        afterStopCallback?.Invoke();
+        yield return new WaitForSeconds(delayBeforeStartMovementSeconds);
+        beforeStartCallback?.Invoke();
+        StartMoving();
     }
 }

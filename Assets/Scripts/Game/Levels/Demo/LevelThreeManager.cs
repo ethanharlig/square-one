@@ -118,11 +118,11 @@ public class LevelThreeManager : LevelManager
                 break;
             case GameState.SUCCESS:
                 Debug.Log("Player has won!");
-                SetTerminalGameState(successElements);
+                SetTerminalGameState(levelUIElements.GetSuccessElements());
                 break;
             case GameState.FAILED:
                 Debug.Log("Player has failed.");
-                SetTerminalGameState(failedElements);
+                SetTerminalGameState(levelUIElements.GetFailedElements());
                 break;
             default:
                 Debug.LogErrorFormat("Encountered unexpected game state: {0}", currentGameState);
