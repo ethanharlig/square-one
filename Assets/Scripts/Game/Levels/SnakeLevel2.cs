@@ -20,7 +20,7 @@ public class SnakeLevel2 : LevelManager
             new Vector2Int(squareOne.x, squareOne.y),
         };
 
-        gsm.SetWaypoints(waypointsInOrder, true);
+        gsm.SetWaypoints(waypointsInOrder);
         gsm.SetTurnLimit(turnLimit);
         gsm.ManageGameState();
 
@@ -63,7 +63,7 @@ public class SnakeLevel2 : LevelManager
 
 #pragma warning restore IDE0051
 
-    protected override void OnPlayerMoveFinishWithShouldCountMove(Vector2Int playerPositionAfterMove, bool shouldCountMove)
+    protected override void OnPlayerMoveFullyCompleted(Vector2Int playerPositionAfterMove, bool shouldCountMove)
     {
         if (shouldCountMove)
         {

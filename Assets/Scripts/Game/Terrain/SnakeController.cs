@@ -23,12 +23,12 @@ public class SnakeController
         this.paintedTiles = new();
         Debug.Log("Instantiating tiles again");
 
-        PlayerController.OnMoveFinish += OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted += OnPlayerMoveFinish;
     }
 
     public void Reset()
     {
-        PlayerController.OnMoveFinish -= OnPlayerMoveFinish;
+        PlayerController.OnMoveFullyCompleted -= OnPlayerMoveFinish;
     }
 
     private void OnPlayerMoveFinish(Vector2Int playerPosition, bool shouldCountMove)

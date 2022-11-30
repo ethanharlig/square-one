@@ -3,6 +3,11 @@ using UnityEngine.SceneManagement;
 
 public class LevelTransitioner : MonoBehaviour
 {
+    void Start()
+    {
+        GameObject.FindGameObjectWithTag("Music").GetComponent<MusicController>().PlayMusic();
+    }
+
     public static void NextLevel()
     {
         SceneManager.LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1, LoadSceneMode.Single);
