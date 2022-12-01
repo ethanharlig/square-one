@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
+// TODO should paint tiles around the player denoting which key moves them where
 public class PlayerController : Singleton<PlayerController>
 {
     // currentPosition here is before player moves

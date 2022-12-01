@@ -129,6 +129,8 @@ public class GridController : Singleton<GridController>
         obstacle.SetAfterRollAction((didFinishMove, _, beforeMovePosition) => AfterMovingObjectMoves(beforeMovePosition));
         movingObstaclePositionToControllerMap.Add(obstacle.GetPositionAsVector2Int(), obstacle);
 
+        // TODO could add this obstacle into a queue and make all obstacles move in order
+
         // moving obstacle should call function to update something with its location
         // obstacle.SetLocationUpdaterFunction();
 

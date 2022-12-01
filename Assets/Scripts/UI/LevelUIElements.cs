@@ -3,20 +3,36 @@ using UnityEngine;
 
 public class LevelUIElements : Singleton<LevelUIElements>
 {
-    [SerializeField] private TextMeshProUGUI moveCountText;
+    public delegate void TogglePauseAction(bool isPaused);
+    public static event TogglePauseAction OnTogglePause;
+    bool _isPaused = false;
+
+    [SerializeField] private TextMeshProUGUI MoveCountText;
     [SerializeField] private GameObject SuccessElements;
     [SerializeField] private GameObject FailedElements;
     [SerializeField] private GameObject PauseMenuElements;
+    [SerializeField] private GameObject PauseButton;
+
+#pragma warning disable IDE0051
+    void Update()
+    {
+#pragma warning restore
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
+    }
+
 
     public void SetMoveCountText(string text)
     {
-        moveCountText.text = text;
+        MoveCountText.text = text;
     }
 
     public void EnableMoveCountText()
     {
-        if (!moveCountText.gameObject.activeSelf)
-            moveCountText.gameObject.SetActive(true);
+        if (!MoveCountText.gameObject.activeSelf)
+            MoveCountText.gameObject.SetActive(true);
     }
 
     public GameObject GetSuccessElements()
@@ -29,13 +45,36 @@ public class LevelUIElements : Singleton<LevelUIElements>
         return FailedElements;
     }
 
-    public void ShowPauseMenu()
+    public void PauseLevel()
     {
-        PauseMenuElements.SetActive(true);
+        _isPaused = true;
+        DoPause();
     }
 
-    public void HidePauseMenu()
+    public void ResumeLevel()
     {
-        PauseMenuElements.SetActive(false);
+        _isPaused = false;
+        DoPause();
     }
+
+    private void DoPause()
+    {
+        PauseButton.SetActive(!_isPaused);
+        PauseMenuElements.SetActive(_isPaused);
+
+        OnTogglePause?.Invoke(_isPaused);
+    }
+
+    private void TogglePause()
+    {
+        if (_isPaused)
+        {
+            ResumeLevel();
+        }
+        else
+        {
+            PauseLevel();
+        }
+    }
+
 }

@@ -1,5 +1,4 @@
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class LevelManager : MonoBehaviour
@@ -49,6 +48,7 @@ public abstract class LevelManager : MonoBehaviour
         gsm = new GameStateManager(playerController, gridController);
 
         gsm.OnStateChange += OnStageChange;
+        LevelUIElements.OnTogglePause += TogglePause;
     }
 
     /**
@@ -146,31 +146,13 @@ public abstract class LevelManager : MonoBehaviour
     {
         SetMoveCountText();
         gsm.CheckPlayerState();
-
-        if (Input.GetKeyDown(KeyCode.Escape))
-        {
-            TogglePause();
-        }
     }
 #pragma warning restore IDE0051
 
-    bool _isPaused = false;
-    private void TogglePause()
+    private void TogglePause(bool isPaused)
     {
-        _isPaused = !_isPaused;
-
-        if (_isPaused)
-        {
-            playerController.MovementEnabled = false;
-            cameraController.RotationEnabled = false;
-            levelUIElements.ShowPauseMenu();
-        }
-        else
-        {
-            playerController.MovementEnabled = true;
-            cameraController.RotationEnabled = true;
-            levelUIElements.HidePauseMenu();
-        }
+        playerController.MovementEnabled = !isPaused;
+        cameraController.RotationEnabled = !isPaused;
     }
 
     // TODO TODO TODO bug bug bug

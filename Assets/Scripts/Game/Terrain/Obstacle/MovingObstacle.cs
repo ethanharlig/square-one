@@ -234,6 +234,7 @@ public class MovingObstacle : ObstacleController
         {
             if (aggressive || desiredPosition != playerPosition)
             {
+                // here is where we should claim a lock on this tile position and say "I'm here now". If lock it taken, recalculate baby
                 Cube.MoveInDirectionIfNotMoving(thisDir, _moveType, false);
             }
         }
