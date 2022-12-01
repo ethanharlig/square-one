@@ -49,6 +49,9 @@ public abstract class LevelManager : MonoBehaviour
 
         gsm.OnStateChange += OnStageChange;
         LevelUIElements.OnTogglePause += TogglePause;
+
+        MusicController.Instance.StopMusic();
+        MusicController.Instance.PlayGameMusic();
     }
 
     /**

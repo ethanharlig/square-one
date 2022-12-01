@@ -49,12 +49,16 @@ public class LevelUIElements : Singleton<LevelUIElements>
     {
         _isPaused = true;
         DoPause();
+        MusicController.Instance.StopMusic();
+        MusicController.Instance.PlayTitleMusic();
     }
 
     public void ResumeLevel()
     {
         _isPaused = false;
         DoPause();
+        MusicController.Instance.StopMusic();
+        MusicController.Instance.PlayGameMusic();
     }
 
     private void DoPause()

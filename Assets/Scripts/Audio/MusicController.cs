@@ -2,7 +2,10 @@ using UnityEngine;
 
 public class MusicController : MonoBehaviour
 {
-    private AudioSource _audioSource;
+    AudioSource titleMusic;
+    AudioSource gameMusic;
+
+    AudioSource _currentSource;
 
     public static MusicController Instance { get; private set; }
 
@@ -21,27 +24,36 @@ public class MusicController : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
         }
-
-        _audioSource = GetComponent<AudioSource>();
     }
 
-    public void SetMusic(AudioClip audioClip, bool loop)
+    void Start()
     {
-        _audioSource.clip = audioClip;
-        _audioSource.loop = loop;
+        titleMusic = transform.GetChild(0).GetComponent<AudioSource>();
+        gameMusic = transform.GetChild(1).GetComponent<AudioSource>();
     }
 
-    public void PlayMusic()
+    public void PlayTitleMusic()
     {
-        if (_audioSource.isPlaying)
+        if (titleMusic.isPlaying)
         {
             return;
         }
-        _audioSource.Play();
+        titleMusic.Play();
+        _currentSource = titleMusic;
+    }
+
+    public void PlayGameMusic()
+    {
+        if (gameMusic.isPlaying)
+        {
+            return;
+        }
+        gameMusic.Play();
+        _currentSource = gameMusic;
     }
 
     public void StopMusic()
     {
-        _audioSource.Stop();
+        _currentSource.Stop();
     }
 }
