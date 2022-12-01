@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 public abstract class LevelManager : MonoBehaviour
@@ -23,6 +24,8 @@ public abstract class LevelManager : MonoBehaviour
         SetupLevel(playerOffsetX, playerOffsetY);
     }
 
+    // TODO should have a way to setup pre-setup and post-setup commands for children. children shouldn't have to call Start
+    // add like an interface for them to implement
     protected void SetupLevel(int playerOffsetX, int playerOffsetY)
     {
         playerController = (PlayerController)PlayerController.Instance;
@@ -49,6 +52,7 @@ public abstract class LevelManager : MonoBehaviour
 
         gsm.OnStateChange += OnStageChange;
         LevelUIElements.OnTogglePause += TogglePause;
+
     }
 
     /**

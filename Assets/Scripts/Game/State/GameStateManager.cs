@@ -78,8 +78,6 @@ public class GameStateManager
         waypoints.Add(waypoint);
     }
 
-    // TODO this is an antipattern, this is required to be set in many places which depend on it (setting move count text in levels)
-    // but it's not always set here. Make this required in constructor
     public void SetTurnLimit(int turnLimit)
     {
         this.turnLimit = turnLimit;

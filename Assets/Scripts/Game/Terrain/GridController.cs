@@ -208,24 +208,52 @@ public class GridController : Singleton<GridController>
         return ((PaintTile)TileAtLocation(position)).GetColor();
     }
 
-    public void PaintTileAtLocation(Vector2Int position, Color color)
+    public bool PaintTileAtLocation(Vector2Int position, Color color)
     {
-        PaintTileAtLocation(position.x, position.y, color);
+        return PaintTileAtLocation(position.x, position.y, color);
     }
 
-    public void PaintTileAtLocation(int x, int y, Color color)
+    /**
+    Returns bool indicating if a tile at this location was painted
+    */
+    public bool PaintTileAtLocation(int x, int y, Color color)
+    {
+        if (!PaintTileExists(x, y)) { return false; }
+
+        ((PaintTile)gridRows[x][y]).Paint(color);
+        return true;
+    }
+
+    public bool PaintLastColorForTileAtLocation(Vector2Int position)
+    {
+        return PaintLastColorForTileAtLocation(position.x, position.y);
+    }
+
+    /**
+    Returns bool indicating if a tile at this location was painted
+    */
+    public bool PaintLastColorForTileAtLocation(int x, int y)
+    {
+        if (!PaintTileExists(x, y)) { return false; }
+
+        ((PaintTile)gridRows[x][y]).PaintLastColor();
+        return true;
+    }
+
+    private bool PaintTileExists(int x, int y)
     {
         if (!IsWithinGrid(x, y))
         {
-            return;
+            return false;
         }
         if (TileAtLocation(x, y) is not PaintTile)
         {
             Debug.Log("Paint tile at location returned a non-paint tile!");
-            return;
+            return false;
         }
-        ((PaintTile)gridRows[x][y]).Paint(color);
+        return true;
     }
+
 
     public void SpawnWaypoint(Waypoint waypoint, WaypointController.OnTriggeredAction onTriggeredAction)
     {
@@ -264,17 +292,46 @@ public class GridController : Singleton<GridController>
         }
     }
 
-    public void PaintTilesAdjacentToLocation(Vector2 position, Color color)
+    public List<Vector2Int> PaintTilesAdjacentToLocation(Vector2 position, Color color)
     {
-        PaintTilesAdjacentToLocation((int)position.x, (int)position.y, color);
+        return PaintTilesAdjacentToLocation((int)position.x, (int)position.y, new() { color });
     }
 
-    public void PaintTilesAdjacentToLocation(int x, int y, Color color)
+    public List<Vector2Int> PaintTilesAdjacentToLocation(Vector2 position, List<Color> colors)
     {
-        PaintTileAtLocation(x - 1, y, color);
-        PaintTileAtLocation(x + 1, y, color);
-        PaintTileAtLocation(x, y - 1, color);
-        PaintTileAtLocation(x, y + 1, color);
+        // TODO return positions
+        return PaintTilesAdjacentToLocation((int)position.x, (int)position.y, colors);
+    }
+
+    public List<Vector2Int> PaintTilesAdjacentToLocation(int x, int y, List<Color> colors)
+    {
+        Vector2Int[] possibleLocations = new[]{
+            new Vector2Int(x-1,y),
+            new Vector2Int(x+1,y),
+            new Vector2Int(x,y-1),
+            new Vector2Int(x,y+1)
+        };
+
+        List<Vector2Int> paintedTiles = new();
+        for (int ndx = 0; ndx < possibleLocations.Length; ndx++)
+        {
+            Vector2Int location = possibleLocations[ndx];
+            Color color;
+            if (ndx >= colors.Count)
+            {
+                color = colors[ndx];
+            }
+            else
+            {
+                color = colors[ndx];
+            }
+
+            if (PaintTileAtLocation(location, color))
+            {
+                paintedTiles.Add(location);
+            }
+        }
+        return paintedTiles;
     }
 
     public bool IsWithinGrid(Vector2Int position)

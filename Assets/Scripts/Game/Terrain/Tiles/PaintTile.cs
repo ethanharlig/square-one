@@ -1,8 +1,9 @@
 using UnityEngine;
 
-// TODO remove this and just use BaseTile once we are using GameStateMager with waypoints
 public class PaintTile : TileController
 {
+    public Color? LastColor { get; private set; }
+
     public bool IsPainted
     {
         get; private set;
@@ -15,7 +16,16 @@ public class PaintTile : TileController
 
     public void Paint(Color color)
     {
+        LastColor = GetColor();
         gameObject.GetComponent<MeshRenderer>().material.color = color;
         IsPainted = true;
+    }
+
+    public void PaintLastColor()
+    {
+        if (LastColor.HasValue)
+        {
+            Paint(LastColor.Value);
+        }
     }
 }

@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class LevelUIElements : Singleton<LevelUIElements>
 {
@@ -12,6 +13,7 @@ public class LevelUIElements : Singleton<LevelUIElements>
     [SerializeField] private GameObject FailedElements;
     [SerializeField] private GameObject PauseMenuElements;
     [SerializeField] private GameObject PauseButton;
+    [SerializeField] private GameObject Compass;
 
 #pragma warning disable IDE0051
     void Update()
@@ -81,4 +83,13 @@ public class LevelUIElements : Singleton<LevelUIElements>
         }
     }
 
+    public void ToggleCompass()
+    {
+        Compass.SetActive(!Compass.activeSelf);
+    }
+
+    public void DeselectClickedButton()
+    {
+        EventSystem.current.SetSelectedGameObject(null);
+    }
 }
