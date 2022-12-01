@@ -42,6 +42,12 @@ public class Waypoint
     {
         public float? Size { get; private set; }
         public Color? WaypointColor { get; private set; }
+        public bool? EnableAudio { get; private set; }
+
+        public static WaypointOptions Of()
+        {
+            return new WaypointOptions();
+        }
 
         public static WaypointOptions Of(float size)
         {
@@ -51,6 +57,16 @@ public class Waypoint
         public static WaypointOptions Of(float size, Color color)
         {
             return new WaypointOptions(size, color);
+        }
+
+        public WaypointOptions WithEnableAudio(bool enableAudio)
+        {
+            EnableAudio = enableAudio;
+            return this;
+        }
+
+        private WaypointOptions()
+        {
         }
 
         private WaypointOptions(float size)

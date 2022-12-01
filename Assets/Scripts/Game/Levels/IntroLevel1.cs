@@ -18,6 +18,7 @@ public class IntroLevel1 : LevelManager
 
         Waypoint[] waypointPositionsInOrder = new[] {
             Waypoint.Of(playerController.GetCurrentPosition().x, playerController.GetCurrentPosition().y)
+            .WithOptions(Waypoint.WaypointOptions.Of().WithEnableAudio(false))
             .WithOnTriggeredAction(() => {
                 helpText.text = "Move with WASD or arrow keys";
                 helpElement.SetActive(true);

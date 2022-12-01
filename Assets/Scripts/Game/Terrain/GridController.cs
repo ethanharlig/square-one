@@ -255,6 +255,10 @@ public class GridController : Singleton<GridController>
             {
                 waypointController.SetColor(waypoint.Options.WaypointColor.Value);
             }
+            if (waypoint.Options.EnableAudio.HasValue)
+            {
+                waypointController.EnableAudio = waypoint.Options.EnableAudio.Value;
+            }
         }
     }
 
