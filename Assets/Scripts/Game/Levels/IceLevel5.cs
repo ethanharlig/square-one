@@ -16,7 +16,6 @@ public class IceLevel5 : LevelManager
 
         MovingObstacle moving = gridController.AddMovingObstacleAtPosition(1, 4);
 
-        // TODO should add mechanic where hitting a waypoint moves an obstacle 
         Waypoint[] waypointsInOrder = new[] {
             Waypoint.Of(gridSizeX - 1, gridSizeY - 1),
             Waypoint.Of(4, gridSizeY - 5).WithOnTriggeredAction(() => {
@@ -76,14 +75,6 @@ public class IceLevel5 : LevelManager
     }
 
 #pragma warning restore IDE0051
-
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-        }
-    }
 
     IEnumerator WaitForObjectToMove(MovingObstacle obstacle, Vector3 dir, Action afterObjectMoveAction)
     {

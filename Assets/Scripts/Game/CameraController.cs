@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 
 public class CameraController : Singleton<CameraController>
 {
+    public bool RotationEnabled { get; set; } = true;
     public float spd = 0.3f;
 
     private Vector3 targetEulerAngles;
@@ -20,13 +21,16 @@ public class CameraController : Singleton<CameraController>
     // this is handling raw input for ideally only webGL
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.E))
+        if (RotationEnabled)
         {
-            TryRotate(1.0f);
-        }
-        else if (Input.GetKeyDown(KeyCode.Q))
-        {
-            TryRotate(-1.0f);
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                TryRotate(1.0f);
+            }
+            else if (Input.GetKeyDown(KeyCode.Q))
+            {
+                TryRotate(-1.0f);
+            }
         }
     }
 

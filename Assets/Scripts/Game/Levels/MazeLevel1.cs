@@ -135,14 +135,4 @@ public class MazeLevel1 : LevelManager
         // MovingObstacle upperLeftQuadrantFollower = gridController.AddMovingObstacleAtPosition(1, 9);
         // upperLeftQuadrantFollower.MoveTowardsPlayer(playerController, gridController.GetCurrentStationaryObstaclesAction(), false);
     }
-
-
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-        }
-    }
-
 }

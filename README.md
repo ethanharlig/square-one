@@ -31,6 +31,8 @@ Here's what it looks like in its current state
 
 # Ideas
 
+- [ ] Saving. Use PlayerPrefs and it's super easy
+  - https://www.red-gate.com/simple-talk/development/dotnet-development/saving-game-data-with-unity/
 - [ ] Leaderboard per-level
 - [ ] Leaderboard for total turns remaining summation golf
 - [ ] Stars per level based on how well they do
@@ -40,7 +42,8 @@ Here's what it looks like in its current state
 ### TODO
 - [ ] Control directions feel clunky
 - [ ] Credits page
-- [ ] Add esc functionality for when in game also should be clickable
+- [ ] Esc functionality for when in game also should be clickable
+- [ ] Intro for waypoint, ice tiles, and obstacles
 
 ### Stretch
 

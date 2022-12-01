@@ -53,14 +53,4 @@ public class IntroLevel1 : LevelManager
         gridController.AddStationaryObstacleAtPosition(gridSizeX - 3, gridSizeY - 2);
         gridController.AddStationaryObstacleAtPosition(gridSizeX - 2, gridSizeY - 3);
     }
-
-    // TODO should move this to LevelManager?
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-
-        }
-    }
 }

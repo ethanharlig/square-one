@@ -56,7 +56,6 @@ public class GameStateManager
         waypoints = PositionsToWaypoints(waypointPositions);
     }
 
-    // TODO should remove autoTrack and automatically determine that. too dangerous
     public void SetWaypoints(Waypoint[] waypoints)
     {
         this.waypoints = new(waypoints);
@@ -106,7 +105,6 @@ public class GameStateManager
         activeWaypoint += 1;
 
         Debug.LogFormat("Next waypoint: {0}", activeWaypoint);
-        Debug.LogFormat("Waypoints count: {0}", waypoints.Count);
 
         if (activeWaypoint == waypoints.Count)
         {

@@ -88,15 +88,6 @@ public class WallLevel1 : LevelManager
         timesWallMoved++;
     }
 
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-
-        }
-    }
-
     void MoveObstacles(Vector3 direction)
     {
         foreach (MovingObstacle obstacle in obstacles)

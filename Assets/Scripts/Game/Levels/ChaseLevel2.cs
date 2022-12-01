@@ -56,12 +56,4 @@ public class ChaseLevel2 : LevelManager
         // can maybe use disable button as bait?
         // gridController.PaintTileAtLocation(new Vector2Int(1, gridSizeY - 2), Color.white);
     }
-
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-        }
-    }
 }

@@ -18,6 +18,9 @@ public class PlayerController : Singleton<PlayerController>
     public delegate void MoveFullyCompletedAction(Vector2Int positionAfterMove, bool oneMoveInThereShouldCount);
     public static event MoveFullyCompletedAction OnMoveFullyCompleted;
 
+    // enable movement by default but can be toggled
+    public bool MovementEnabled { get; set; } = true;
+
     private Vector3 originalPosition;
 
     private bool inTerminalGameState = false;
@@ -57,21 +60,24 @@ public class PlayerController : Singleton<PlayerController>
     // this is handling raw input for ideally only webGL
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+        if (MovementEnabled)
         {
-            TryMove(new Vector2Int(0, 1));
-        }
-        else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            TryMove(new Vector2Int(-1, 0));
-        }
-        else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
-        {
-            TryMove(new Vector2Int(0, -1));
-        }
-        else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            TryMove(new Vector2Int(1, 0));
+            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            {
+                TryMove(new Vector2Int(0, 1));
+            }
+            else if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+            {
+                TryMove(new Vector2Int(-1, 0));
+            }
+            else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+            {
+                TryMove(new Vector2Int(0, -1));
+            }
+            else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+            {
+                TryMove(new Vector2Int(1, 0));
+            }
         }
     }
 
@@ -148,8 +154,6 @@ public class PlayerController : Singleton<PlayerController>
 
         anyMoveCompleted |= moveCompleted;
         shouldAnyMoveBeCounted |= shouldMoveBeCounted;
-
-        // ((GridController)GridController.Instance).TileWillMovePlayer(.)
 
         bool willTileMovePlayer = tileAtLocationWillMovePlayer.Invoke(currentPosition.x, currentPosition.y);
 

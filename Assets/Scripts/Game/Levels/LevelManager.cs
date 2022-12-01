@@ -94,7 +94,19 @@ public abstract class LevelManager : MonoBehaviour
     protected virtual void OnPlayerMoveStart(Vector2Int playerPositionBeforeMove) { }
     protected virtual void OnPlayerMoveFinish(Vector2Int playerPositionAfterMove) { }
 
-    protected virtual void OnPlayerMoveFullyCompleted(Vector2Int playerPositionAfterMove, bool shouldCountMove) { }
+    protected virtual void OnPlayerMoveFullyCompleted(Vector2Int playerPositionAfterMove, bool shouldCountMove)
+    {
+        UpdateTurnsLeft(shouldCountMove);
+    }
+
+    protected void UpdateTurnsLeft(bool shouldCountMove)
+    {
+        // TODO do we need to check if shouldCountMove? Shouldn't player move count be accurate?
+        if (shouldCountMove)
+        {
+            turnsLeft = turnLimit - playerController.GetMoveCount();
+        }
+    }
 
     // using this doesn't guarantee that a move has finished, so you get no access to know if the move should count
     private void OnPlayerMoveFinish(Vector2Int playerPositionAfterMove, bool shouldCountMove)
@@ -105,8 +117,6 @@ public abstract class LevelManager : MonoBehaviour
 
         }
         OnPlayerMoveFinish(playerPositionAfterMove);
-        // TODO should this be removed?? is this getting called twice?
-        // OnPlayerMoveFullyCompleted(playerPositionAfterMove, shouldCountMove);
     }
 
 #pragma warning disable IDE0051
@@ -131,12 +141,37 @@ public abstract class LevelManager : MonoBehaviour
 
         gsm.OnStateChange -= OnStageChange;
     }
+
     void Update()
     {
         SetMoveCountText();
         gsm.CheckPlayerState();
+
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            TogglePause();
+        }
     }
 #pragma warning restore IDE0051
+
+    bool _isPaused = false;
+    private void TogglePause()
+    {
+        _isPaused = !_isPaused;
+
+        if (_isPaused)
+        {
+            playerController.MovementEnabled = false;
+            cameraController.RotationEnabled = false;
+            levelUIElements.ShowPauseMenu();
+        }
+        else
+        {
+            playerController.MovementEnabled = true;
+            cameraController.RotationEnabled = true;
+            levelUIElements.HidePauseMenu();
+        }
+    }
 
     // TODO TODO TODO bug bug bug
     // TODO if player needs to step on multiple ice tiles which result in 0 moves remaining but a victory,

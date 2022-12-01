@@ -116,7 +116,6 @@ public class GridController : Singleton<GridController>
         return obstacle;
     }
 
-    // TODO should be split into static and moving obstacles
     public MovingObstacle AddMovingObstacleAtPosition(int x, int y)
     {
         if (_obstacleGameObject == null)

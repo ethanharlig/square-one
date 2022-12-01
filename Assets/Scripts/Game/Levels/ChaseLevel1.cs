@@ -74,10 +74,6 @@ public class ChaseLevel1 : LevelManager
                 obstacle.StopMovement();
             }
         }
-
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-        }
+        UpdateTurnsLeft(shouldCountMove);
     }
 }

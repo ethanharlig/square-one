@@ -54,12 +54,4 @@ public class IceLevel3 : LevelManager
     }
 
 #pragma warning restore IDE0051
-
-    override protected void OnPlayerMoveFullyCompleted(Vector2Int playerPosition, bool shouldCountMove)
-    {
-        if (shouldCountMove)
-        {
-            turnsLeft = turnLimit - playerController.GetMoveCount();
-        }
-    }
 }
