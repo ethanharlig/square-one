@@ -5,6 +5,11 @@ public class MainMenuController : MonoBehaviour
 {
     public static readonly int MenuSceneIndex = 2;
 
+    void Start()
+    {
+        MusicController.Instance.PlayTitleMusic();
+    }
+
     public void PlayGame()
     {
         Debug.LogFormat("If play button is not working, is the first level right after menu?");

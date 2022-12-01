@@ -24,30 +24,39 @@ public class MusicController : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(this.gameObject);
         }
-    }
 
-    void Start()
-    {
         titleMusic = transform.GetChild(0).GetComponent<AudioSource>();
         gameMusic = transform.GetChild(1).GetComponent<AudioSource>();
     }
 
     public void PlayTitleMusic()
     {
+        Debug.Log("Playing title music!");
         if (titleMusic.isPlaying)
         {
             return;
         }
+        if (gameMusic.isPlaying)
+        {
+            gameMusic.Stop();
+        }
+
         titleMusic.Play();
         _currentSource = titleMusic;
     }
 
     public void PlayGameMusic()
     {
+        Debug.Log("Playing game music!");
         if (gameMusic.isPlaying)
         {
             return;
         }
+        if (titleMusic.isPlaying)
+        {
+            titleMusic.Stop();
+        }
+
         gameMusic.Play();
         _currentSource = gameMusic;
     }
