@@ -3,8 +3,12 @@ using UnityEngine;
 public abstract class Singleton<T> : MonoBehaviour
 {
     // SINGLETON
-    public static Singleton<T> Instance { get; private set; }
 
+    public static Singleton<T> Instance
+    {
+        get;
+        private set;
+    }
 #pragma warning disable IDE0051
     void Awake()
     {
